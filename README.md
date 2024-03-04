@@ -10,7 +10,7 @@ The original software is based on Rob Dobson's work by way of Matt G. (https://a
 
 Project goals (at least initially)
 
--Add support for this board while maintaining backword compatibility
+-Add support for this board while maintaining backword compatibility.   The MKS boards mostly use an I2S expander to provide additional GPIO pins for things like stepper motor direction/enable/step pins
 
 -Add screen support using TFT_eSPI/lvgl
 

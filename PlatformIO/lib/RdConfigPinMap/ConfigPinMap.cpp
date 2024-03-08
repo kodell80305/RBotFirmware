@@ -11,8 +11,8 @@ int ConfigPinMap::_pinMapOtherPin[] = {DAC1, DAC2, SCL, SDA, RX, TX, MISO, MOSI,
 int ConfigPinMap::_pinMapOtherLen = sizeof(ConfigPinMap::_pinMapOtherPin) / sizeof(int);
 int ConfigPinMap::_pinMapD[] = {};
 int ConfigPinMap::_pinMapDLen = sizeof(ConfigPinMap::_pinMapD) / sizeof(int);
-int ConfigPinMap::_pinMapA[] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12};
-int ConfigPinMap::_pinMapALen = sizeof(ConfigPinMap::_pinMapA) / sizeof(int);
+//int ConfigPinMap::_pinMapA[] = {A0, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12};
+//int ConfigPinMap::_pinMapALen = sizeof(ConfigPinMap::_pinMapA) / sizeof(int);
 
 #elif defined(ESP8266)
 
@@ -71,8 +71,8 @@ int ConfigPinMap::getPinFromName(const char *pinName)
     case 'A':
     {
         int pinIdx = (int)strtol(pinName + 1, NULL, 10);
-        if (pinIdx >= 0 && pinIdx < _pinMapALen)
-            return _pinMapA[pinIdx];
+        //if (pinIdx >= 0 && pinIdx < _pinMapALen)
+           // return _pinMapA[pinIdx];
         return -1;
     }
     }

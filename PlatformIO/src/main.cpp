@@ -97,6 +97,12 @@ MQTTManager mqttManager(wifiManager, restAPIEndpoints);
 #include <RdOTAUpdate.h>
 RdOTAUpdate otaUpdate;
 
+//Display
+
+#include "Display.h"
+Display display;
+#include "RobotMotion/MotionControl/i2s_lcl.h"
+
 // Hardware config
 static const char *hwConfigJSON = {
     "{"
@@ -202,7 +208,7 @@ void setup()
 {
     // Logging
     Serial.begin(115200);
-    Log.begin(LOG_LEVEL_TRACE, &netLog);
+    Log.begin(LOG_LEVEL_VERBOSE, &netLog);
 
     // Message
     Log.notice("%s %s (built %s %s)\n", systemType, systemVersion, buildDate, buildTime);
@@ -284,6 +290,11 @@ void setup()
     debugLoopTimer.blockAdd(13, "Robot");
     debugLoopTimer.blockAdd(14, "LedStrip");
 
+
+    i2s_init();
+
+    display.setup(hwConfig, restAPIEndpoints);
+
     // Reconfigure the robot and other settings
     _workManager.reconfigure();
 
@@ -294,7 +305,6 @@ void setup()
 // Loop
 void loop()
 {
-
     // Debug loop Timing
     debugLoopTimer.blockStart(0);
     debugLoopTimer.service();
@@ -362,6 +372,20 @@ void loop()
         String newStatus;
         _workManager.queryStatus(newStatus);
         webServer.sendAsyncEvent(newStatus.c_str(), "status");
+
+        String fileName; 
+
+        if(fileManager.getFilePlaying()) {
+
+            fileName = fileManager.getFileName();
+        } else {
+            if(_workManager.evaluatorsBusy(false)) {
+                    fileName = _workManager.evaluatorsPattern();
+            } else {
+                    fileName = "";
+            }
+        }      
+        display.status(newStatus, fileName);
     }
     debugLoopTimer.blockEnd(11);
 
@@ -379,6 +403,8 @@ void loop()
     debugLoopTimer.blockStart(14);
     ledStrip.service();
     debugLoopTimer.blockEnd(14);
+
+    display.service();
 
 }
 

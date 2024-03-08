@@ -201,3 +201,8 @@ String RobotController::getDebugStr()
 {
     return _motionHelper.getDebugStr();
 }
+
+bool RobotController::isIdle()
+{
+    return _motionHelper.isIdle();
+}

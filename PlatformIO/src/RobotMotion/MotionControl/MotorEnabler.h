@@ -1,5 +1,6 @@
 
 #include "Utils.h"
+#include "i2s_lcl.h"
 
 class MotorEnabler
 {
@@ -37,7 +38,7 @@ public:
 
         // Enable pin - initially disable
         pinMode(_stepEnablePin, OUTPUT);
-        digitalWrite(_stepEnablePin, !_stepEnLev);
+        my_digitalWrite(_stepEnablePin, !_stepEnLev);
         return true;
     }
 
@@ -51,7 +52,7 @@ public:
             {
                 if (!_motorsAreEnabled)
                     Log.notice("MotorEnabler: enabled, disable after idle %Fs\n", _stepDisableSecs);
-                digitalWrite(_stepEnablePin, _stepEnLev);
+                my_digitalWrite(_stepEnablePin, _stepEnLev);
             }
             _motorsAreEnabled = true;
             _motorEnLastMillis = millis();
@@ -62,8 +63,8 @@ public:
             if (_stepEnablePin != -1)
             {
                 if (_motorsAreEnabled)
-                    Log.notice("MotorEnabler: %smotors disabled by %s\n", timeout ? "timeout" : "command");
-                digitalWrite(_stepEnablePin, !_stepEnLev);
+                Log.notice("MotorEnabler: motors disabled by %s pins %d\n", timeout ? "timeout" : "command", _stepEnablePin);
+                my_digitalWrite(_stepEnablePin, !_stepEnLev);
             }
             _motorsAreEnabled = false;
         }

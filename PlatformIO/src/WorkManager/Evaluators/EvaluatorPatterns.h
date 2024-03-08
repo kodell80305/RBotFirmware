@@ -25,7 +25,7 @@ public:
 
     // Is Busy
     bool isBusy();
-    
+    String getCurrentPattern()  {return _curPattern;};
     // Check valid
     bool isValid(WorkItem& workItem);
 

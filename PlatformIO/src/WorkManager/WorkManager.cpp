@@ -159,6 +159,8 @@ void WorkManager::processSingle(const char *pCmdStr, String &retStr)
     {
         _robotController.stop();
         _workItemQueue.clear();
+        //Doesn't matter if we're playing a file or not ...
+        _fileManager.chunkedFileStop();
         evaluatorsStop();
         retStr = okRslt;
     }
@@ -480,6 +482,10 @@ bool WorkManager::evaluatorsBusy(bool includeFileEvaluator)
     // at a higher level than other evaluators and only gets services when the workitem
     // queue is completely empty and nothing else is busy
     return false;
+}
+
+String WorkManager::evaluatorsPattern() {
+    return _evaluatorPatterns.getCurrentPattern();
 }
 
 void WorkManager::evaluatorsSetConfig(const char* configJson, const char* jsonPath,

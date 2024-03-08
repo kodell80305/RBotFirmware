@@ -96,6 +96,11 @@ public:
     // Get debug string
     String getDebugStr();
 
+        // Check evaluators busy
+    bool evaluatorsBusy(bool includeFileEvaluator);
+    String evaluatorsPattern();
+
+
 private:
     // Execute an item of work
     bool execWorkItem(WorkItem& workItem);
@@ -109,8 +114,6 @@ private:
     // Service evaluators
     void evaluatorsService();
 
-    // Check evaluators busy
-    bool evaluatorsBusy(bool includeFileEvaluator);
 
     // Set config
     void evaluatorsSetConfig(const char* configJson, const char* jsonPath, const char* robotAttributes);

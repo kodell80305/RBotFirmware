@@ -77,15 +77,25 @@ public:
 
     // Start access to a file in chunks
     bool chunkedFileStart(const String& fileSystemStr, const String& filename, bool readByLine);
+    void chunkedFileStop() {_chunkedFileInProgress = false;};
 
-    // Get next chunk of file
+    // Get next chunk of jfile
     uint8_t* chunkFileNext(String& filename, int& fileLen, int& chunkPos, int& chunkLen, bool& finalChunk);
+
+    int getFilePos() {return _chunkedFilePos;};
+    int getFileLen() {return _chunkedFileLen;};
+    int getFilePlaying() {return _chunkedFileInProgress;};
+    String getFileName() {return _chunkedFilename;}
+
 
     // Get file name extension
     static String getFileExtension(String& filename);
 
     // Read line from file
     char* readLineFromFile(char* pBuf, int maxLen, FILE* pFile);
+
+    void mount();
+    void unmount();
 
 private:
     bool checkFileSystem(const String& fileSystemStr, String& fsName);

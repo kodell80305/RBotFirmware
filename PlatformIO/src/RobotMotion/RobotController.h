@@ -56,5 +56,7 @@ public:
 
     bool wasActiveInLastNSeconds(int nSeconds);
 
+    bool isIdle();
+
     String getDebugStr();
 };

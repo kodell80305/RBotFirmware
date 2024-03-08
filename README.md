@@ -10,11 +10,15 @@ The original software is based on Rob Dobson's work by way of Matt G. (https://a
 
 Project goals (at least initially)
 
--Add support for this board while maintaining backword compatibility.   The MKS boards mostly use an I2S expander to provide additional GPIO pins for things like stepper motor direction/enable/step pins
+-Add support for this board while maintaining backward compatibility.   The MKS boards use an I2S I/O expander to provide additional GPIO pins for things like stepper motor direction/enable/step pins.   The ESP32 is a very nice chip in a lot of ways, but it lacks in GPIO.  Using the i2s bus (which was originally designed for digital audio, but has since been adapted for LCD's & Camera functions), allows a major expanions of output capability.   In Marlin/GRBL32, DMA is used and the I2S samples are routed to shift registers to set up the output pins.  
 
--Add screen support using TFT_eSPI/lvgl
+This software has the stepping function managed from a timer interrupt (which sets the length of the stepping pulse).   It's a little more overhead than the DMA, but not a problem for my application (Sysiphus table).
 
--Modify the LED to support addressable LED's such as WS2811/WS2812.  
+This board has only a single 8 bit shift register that sets a common enable bit (for X, Y, Z stepper drivers), 2 bits of step/direction for X, Y, Z (6 bits total) and a beeper output (1 bit).   We'll set I2S0.conf_single_data in the timer interrupt & let this be the static value until it's changed (I think) - I lack access to a scope to verify this, but it seems to be working.
+
+-Modify the LED support to handle a WS2812B LED strip.   We can control the LED from the TTL output (IO32) found on J18 (for a 12 volt LED strip).   
+
+-Add screen support using TFT_eSPI/lvgl for the TS35-R screen 
 
 -Change original software as little as possible & maintain backward compatibility
 

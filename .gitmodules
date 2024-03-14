@@ -1,0 +1,6 @@
+[submodule "PlatformIO/components/lvgl"]
+	path = PlatformIO/components/lvgl
+	url = https://github.com/lvgl/lvgl.git
+[submodule "PlatformIO/components/lvgl_esp32_drivers"]
+	path = PlatformIO/components/lvgl_esp32_drivers
+	url = https://github.com/lvgl/lvgl_esp32_drivers.git

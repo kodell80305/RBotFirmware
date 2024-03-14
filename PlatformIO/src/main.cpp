@@ -100,7 +100,7 @@ RdOTAUpdate otaUpdate;
 //Display
 
 #include "Display.h"
-Display display;
+SerialDisplay display;
 #include "RobotMotion/MotionControl/i2s_lcl.h"
 
 // Hardware config
@@ -289,6 +289,9 @@ void setup()
     debugLoopTimer.blockAdd(12, "Flow");
     debugLoopTimer.blockAdd(13, "Robot");
     debugLoopTimer.blockAdd(14, "LedStrip");
+    debugLoopTimer.blockAdd(15, "Display");
+    
+    
 
 
     i2s_init();
@@ -305,6 +308,7 @@ void setup()
 // Loop
 void loop()
 {
+
     // Debug loop Timing
     debugLoopTimer.blockStart(0);
     debugLoopTimer.service();
@@ -386,6 +390,7 @@ void loop()
             }
         }      
         display.status(newStatus, fileName);
+
     }
     debugLoopTimer.blockEnd(11);
 
@@ -404,7 +409,9 @@ void loop()
     ledStrip.service();
     debugLoopTimer.blockEnd(14);
 
+    debugLoopTimer.blockStart(15);
     display.service();
+    debugLoopTimer.blockEnd(15);
 
 }
 

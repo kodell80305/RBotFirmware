@@ -1,8 +1,7 @@
 #include "Arduino.h"
+#ifdef ENABLE_I2S
 #include "i2s_lcl.h"
-
 #include "driver/i2s.h"
-
 
 
 // Bit field and masking macros
@@ -100,3 +99,14 @@ my_digitalWrite(uint8_t pin, uint8_t val) {
 uint32_t getI2S() {
   return i2s_port_data;
 }
+#else
+void 
+i2s_init() {};
+void IRAM_ATTR
+my_digitalWrite(uint8_t pin, uint8_t val)  {
+    digitalWrite(pin, val);
+}
+
+void IRAM_ATTR
+i2s_push_sample() {}
+#endif

@@ -1,64 +1,37 @@
+#ifdef ENABLE_DISPLAY
+#include <Arduino.h>
+
+//#include <esp32_smartdisplay.h>
+//#include <ui/ui.h>
 #include "Display.h"
 #include "pins_arduino.h"
 #include "HardwareSerial.h"
 #include <WiFi.h>
+#include "FileManager.h"
+#include "RestAPIEndpoints.h"
+
 #include "RobotMotion/MotionControl/i2s_lcl.h"
 
 #include <Adafruit_NeoPixel.h>
 
+ static SerialDisplay *_instance;
 
-
-void sendToDisplay(const char *sendStr) {
-    Log.notice("Sending %s to Display\n", sendStr);
-    Serial2.print(sendStr);
-
-    Serial2.write(0xff);
-    Serial2.write(0xff);
-    Serial2.write(0xff);
+SerialDisplay *SerialDisplay::getInstance() {
+    return _instance;
 }
 
+SerialDisplay::SerialDisplay() {
+    //SerialDisplay should be a singleton -
+    //TODO - check if it exists, disallow copy, etc.
+    _instance = this;
+}
+#define NUM_LEDS 4 //78
 
-#define NUM_LEDS 20
-
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, 32, NEO_GRB);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_WS2812B_PIN, NEO_GRB);
 int redVal=0;
 int blueVal=255;
 int greenVal=0;
 int dimVal=75;
-
-//TFT_eSPI tft = TFT_eSPI();
-#if 0
-MCStepper @ 0.7.3
-|-- WiFi @ 1.0
-|-- ESP32 BLE Arduino @ 1.0.1
-|-- lv_arduino @ 2.1.5
-|-- BluetoothSerial @ 1.0
-|-- WebServer @ 1.0
-|-- WiFiClientSecure @ 1.0
-|-- WebSockets @ 2.1.2
-|-- DNSServer @ 1.1.0
-|-- ESP32SSPD @ 1.0
-|-- ESPmDNS @ 1.0
-|-- FS @ 1.0
-|-- SD(esp32) @ 1.0.5
-|-- SPIFFS @ 1.0
-|-- Update @ 1.0
-|-- ArduinoOTA @ 1.0
-|-- TFT_eSPI @ 2.3.70
-|-- EEPROM @ 1.0.3
-|-- Preferences @ 1.0
-|-- Wire @ 1.0.1
-|-- SPI @ 1.0
-#endif
-
-void grbl_send(uint8_t client, const char* text) {};
-void grbl_sendf(uint8_t client, const char* format, ...) {};
-//void grbl_msg_sendf(uint8_t client, MsgLevel level, const char* format, ...) {};
-
-float mpos=0.0;
-float* system_get_mpos() {return &mpos;};
-void   mpos_to_wpos(float* position) {};
-void report_status_message(int status_code, uint8_t client) {};
 
 void
 lcd_setup() {
@@ -72,59 +45,37 @@ lcd_setup() {
 
 
 }
+                           
+//For MKS Tiny Bee
+//#define RXD2 16 //todo - ADD TO .json file
+//#define TXD2 17
 
-#if 0
-
-    #include <U8g2lib.h>
-
-// obviously replace that by the pins you are using
-#define LCD_CLOCK 18  // Clock (Common), sometimes called SCK or SCL
-#define LCD_MOSI 23   // MOSI (common), sometimes called SDA or DATA
-#define LCD_RESET 0   // LCD reset, sometimes called RST or RSTB
-#define LCD_CS 21      // LCD CS, sometimes called EN or SS
-#define LCD_RS 4      // LCD RS, sometimes called A0 or DC
-
-U8G2_ST7567_JLX12864_1_4W_SW_SPI u8g2_lcd(U8G2_R0, 
-                                          LCD_CLOCK, 
-                                          LCD_MOSI, 
-                                          LCD_CS, 
-                                          LCD_RS, 
-                                          LCD_RESET); // clock, data, cs, dc, reset
-
-    u8g2_lcd.begin();Filef
+void SerialDisplay::writeSerialDisplay(const char *sendStr) {
+#ifdef SERIAL_DISPLAY
+    if(Serial2.availableForWrite()) {
+        Log.notice("Sending %s to Display\n", sendStr);
+        Serial2.printf("%s%c%c%c", sendStr, 0xff, 0xff, 0xff);
+    } else {
+         Log.notice("Sending %s to Display blocked\n", sendStr);
+    }
 #endif
-
-unsigned long lastMillis=0;
-#if 0
-#include <stdint.h>
-#include "mks/MKS_TS35.h"
-#include "mks/MKS_LVGL.h"
-#include "mks/mks_test.h"
-#include "mks/MKS_SDCard.h"
-#endif
-//#include <vfs_api.h>
-
+}
 
 //SDFS SD = SDFS(FSImplPtr(new VFSImpl()));
 
-void Display::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
+void SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
 
-     _restAPIEndpoints = endpoints;
-#define RXD2 0 //todo - ADD TO .json file
-#define TXD2 32
-#define LCD_EN					    GPIO_NUM_5    
-
-
-   Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    _restAPIEndpoints = endpoints;
+#ifdef SERIAL_DISPLAY
+    Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
+    Serial2.setRxBufferSize(2048);
+#endif
 
     //Reset Display
 
-    sendToDisplay("rest");
+    writeSerialDisplay("rest");
 
-    lastMillis=millis();
-
-    lcd_setup();
-   // mks_listDir(SD, "/",1);
+    lcd_setup();         //TMP
 
 
     #if 0
@@ -144,40 +95,31 @@ void Display::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
 
 }
 
-
-
-
-
-    
-
 void
-handleSplash(char *DisplayData) {
+SerialDisplay::handleSplash(char *DisplayData) {
     Log.notice("handleSplash called\n");
 
     //Init once values:
 
     char sendStr[80];
     sprintf(sendStr, "dim=%d", dimVal);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     sprintf(sendStr, "Splashscreen.ledRed.val=%d", redVal);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     
     sprintf(sendStr, "Splashscreen.ledGreen.val=%d", greenVal);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
     
     sprintf(sendStr, "Splashscreen.ledBlue.val=%d", blueVal);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
 
 }
 
-#include "FileManager.h"
- #include "RestAPIEndpoints.h"
-
 void
-handleFileSelect(char *DisplayData) {
+SerialDisplay::handleFileSelect(char *DisplayData) {
     Log.notice("handleFileSelect called\n");
 
 
@@ -231,19 +173,19 @@ handleFileSelect(char *DisplayData) {
     }
     char sendStr[80];
     sprintf(sendStr, "maxFiles.val=%d", count);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     for(int i=0; i < count; i++) {
         
 
         sprintf(sendStr, "va%d.txt=\"%s\"", i, filename[i].c_str());
-        sendToDisplay
+        writeSerialDisplay
     (sendStr);
     }
 }
 
 void
-handleRed(char *DisplayData) {
+SerialDisplay::handleRed(char *DisplayData) {
     sscanf(DisplayData, "ledRed %d", &redVal);
     Log.trace("Display set red to %d %s\n", redVal, DisplayData);
     
@@ -253,7 +195,7 @@ handleRed(char *DisplayData) {
     strip.show();
 }
 void
-handleGreen(char *DisplayData) {
+SerialDisplay::handleGreen(char *DisplayData) {
     sscanf(DisplayData, "ledGreen %d", &greenVal);
     Log.trace("Display set green to %d %s\n", greenVal, DisplayData);
     
@@ -264,7 +206,7 @@ handleGreen(char *DisplayData) {
 }
 
 void
-handleBlue(char *DisplayData) {
+SerialDisplay::handleBlue(char *DisplayData) {
     sscanf(DisplayData, "ledBlue %d", &blueVal);
     Log.trace("Displayset blue to %d %s\n", blueVal, DisplayData);
     
@@ -274,27 +216,10 @@ handleBlue(char *DisplayData) {
     strip.show();
 }
 
-void
-handleRobotPosition(char *DisplayData) {
-}
 
 
 void
-handleManualControl(char *DisplayData) {
-}
-
-void
-handleHome(char *DisplayData) {
-}
-void
-handleClean(char *DisplayData) {
-}
-
-void
-Display::handlePlay(char *DisplayData) {
-}
-void
-handlePlay(char *DisplayData) {
+SerialDisplay::handlePlay(char *DisplayData) {
     extern RestAPIEndpoints restAPIEndpoints;
 
     Log.trace("Display cmdStr %s\n", DisplayData);
@@ -305,7 +230,7 @@ handlePlay(char *DisplayData) {
     Serial.println();
 }
 void
-handleExec(char *DisplayData) {
+SerialDisplay::handleExec(char *DisplayData) {
     extern RestAPIEndpoints restAPIEndpoints;
 
     Log.trace("Display cmdStr %s\n", DisplayData);
@@ -315,13 +240,6 @@ handleExec(char *DisplayData) {
     Serial.println(retStr);
     Serial.println();
 }
-
-void
-handleNop(char *DisplayData) {}
-
-
-
-
 
 #if 0
     bool _ptUnitsSteps : 1;
@@ -351,7 +269,7 @@ handleNop(char *DisplayData) {}
 #include <driver/i2s.h>
 static uint8_t flag;
 
-void Display::status(String newStatus,String fileName)
+void SerialDisplay::status(String newStatus,String fileName)
 {
     //Sending Splashscreen.status.txt="{"wifiIP":"192.168.50.237","wifiConn":"C","ssid":"deagol","MAC":"8:f9:e0:9e:c2:58","RSSI":-39,"espV":"2.028.002",
     //"XYZ":[0.00,0.00,0.00],"ABC":[0,0,0],"mv":"abs","end":[[2,0], to Display
@@ -407,24 +325,24 @@ void Display::status(String newStatus,String fileName)
 
     }
 #if 1
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 #endif
     
 extern uint32_t getI2S();
 
 
     snprintf(sendStr, sizeof(sendStr), "Splashscreen.isPaused.val=%s %x %d", pause.c_str(), getI2S(), flag);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     snprintf(sendStr, sizeof(sendStr), "Splashscreen.Qd.val=%s", Qd.c_str());
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     snprintf(sendStr, sizeof(sendStr), "Splashscreen.progress.val=%d", pos);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
 
     snprintf(sendStr, sizeof(sendStr), "Splashscreen.fileName.txt=\"%s \"", fileName.c_str());
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     //Also send Hmd & WifiIP (homing might be useful also)
     //We're playing a file, a param or the homing string - above work for file case
@@ -469,13 +387,13 @@ extern uint32_t getI2S();
         rho /=3.57;   //TODO = get from hardware config
 
     //snprintf(sendStr, sizeof(sendStr), "Splashscreen.XYZ.txt=\"%7.2f,%7.2f\"", y,x);
-    //sendToDisplay(sendStr
+    //writeSerialDisplay(sendStr
     snprintf(sendStr, sizeof(sendStr), "Splashscreen.ABC.txt=\"%3.0f deg / %3.0f %%\"", theta,rho);
-    sendToDisplay(sendStr);
+    writeSerialDisplay(sendStr);
 
     //snprintf(sendStr, sizeof(sendStr), "Splashscreen.status.txt=\"XYZ %s ABC %s end %s tod %s pause %s Qd %s\"", XYZ.c_str(), ABC.c_str(), end.c_str(), tod.c_str(), pause.c_str(), Qd.c_str());
 
-    //sendToDisplay(sendStr);
+    //writeSerialDisplay(sendStr);
     //Log.notice("Display status update %s\n", newStatus.c_str());
 #endif
 }
@@ -483,65 +401,85 @@ extern uint32_t getI2S();
 
 
 
-// Receives data on serial port 1 as sent to Display (received by Display)
-// Formats for easy reading in serial monitor
-
-const uint8_t bufferSize = 128;
-char DisplayDataRx[bufferSize];
-uint8_t DisplayDataIndex = 0;
-bool dataReady = false;
-bool overflow = false;
 
 
-bool RxDisplayData() {
-  char RxTemp;
+#define MAX_CHAR 15
 
-  static uint8_t ffCount;
+int
+SerialDisplay::readSerialDisplay() {
+    char RxTemp;
+    
+    int maxChar=0;
+    int idx = 0;
 
-  while (Serial2.available() > 0) {
-    RxTemp = Serial2.read();
-     Serial.println("next=" + String(RxTemp));
-    if (RxTemp == 0xff) {
-      ++ffCount;
-      if (ffCount >= 3) {
-        dataReady= (DisplayDataIndex > 0);
-   
-        ffCount = 0;
-        DisplayDataRx[DisplayDataIndex] = 0;
-        DisplayDataIndex = 0;
-        Serial.println("ffCount=" + String(ffCount));
-        return dataReady;
-      }
-    } else {
-        if(isprint(RxTemp)) {
-            DisplayDataRx[DisplayDataIndex] = RxTemp;
-            ++DisplayDataIndex;
-            if (DisplayDataIndex >= bufferSize) {
-                DisplayDataRx[bufferSize - 1] = 0;
-                dataReady = true;
-                overflow = true;
-                return true;
-            
+#ifdef SERIAL_DISPLAY
+    while(Serial2.available() > 0) {
+        if(maxChar++ >=MAX_CHAR) {
+            return false;
+        }
+        RxTemp = Serial2.read();
+
+        //Serial.printf("next=%02x\n",RxTemp);
+
+        if (RxTemp == 0xff) {
+            ++ffCount;
+            if (ffCount >= 3) {
+                idx = displayIdx;
+                DisplayDataRx[idx] = 0;
+                ffCount = displayIdx = 0;
             }
-        }  //else we should handle this - it's a Display
-     return dataReady;
+        } else {
+            if(isprint(RxTemp)) {
+                DisplayDataRx[displayIdx++] = RxTemp;
+                if (displayIdx >= bufferSize) {
+                    idx = bufferSize - 1;
+                    DisplayDataRx[idx] = 0;
+                    ffCount = 0;
+                   
+                }
+            }  //else we should handle this - it's a Display return code 
+        }
     }
-  }
-  return false;
+#endif
+  return idx;
 }
 
+void 
+handlePlay(char *DisplayData) {
+    SerialDisplay::getInstance()->handlePlay(DisplayData);
+}
+void 
+handleSplash(char *DisplayData) {
+    SerialDisplay::getInstance()->handleSplash(DisplayData);
+}
+void 
+handleExec(char *DisplayData) {
+    SerialDisplay::getInstance()->handleExec(DisplayData);
+}
+void 
+handleRed(char *DisplayData) {
+    SerialDisplay::getInstance()->handleRed(DisplayData);
+}
+void 
+handleBlue(char *DisplayData) {
+    SerialDisplay::getInstance()->handleBlue(DisplayData);
+}
+void 
+handleGreen(char *DisplayData) {
+    SerialDisplay::getInstance()->handleGreen(DisplayData);
+}
+void
+handleFileSelect(char *DisplayData) {
+    SerialDisplay::getInstance()->handleFileSelect(DisplayData);
+}
+void
+handleNop(char *DisplayData) {};
 
 #define NUM_CMDS 11
 
-#if 1
-  Commands commands[] = {
+Commands commands[] = {
     { "SplashScreen", handleSplash},
     { "FileSelect", handleFileSelect},
-    { "RobotPostiton", handleRobotPosition},
-    { "ManualControl", handleManualControl},
-    { "Home", handleHome},
-    { "Clean", handleClean},
-    { "playFile", handlePlay},
     { "/exec", handleExec},
     { "ledRed", handleRed},
     { "ledBlue", handleBlue},
@@ -549,12 +487,9 @@ bool RxDisplayData() {
     { "", handleNop}
 
 };
-#endif
-void Display::service() {
 
-
-
-    if(RxDisplayData()) {
+void SerialDisplay::service() {
+    if(readSerialDisplay() > 0) {
         //Parse string & do appropriate actions
         //Serial.println(DisplayDataRx);
         //If first character is "/", 
@@ -572,5 +507,5 @@ void Display::service() {
         }
 
     }
-
 }
+#endif

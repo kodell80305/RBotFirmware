@@ -108,7 +108,6 @@ void MotionHoming::service(AxesParams &axesParams)
     if (!cmdValid)
     {
         // Done
-        _isHomedOk = false;
         _homingInProgress = false;
         _commandInProgress = false;
     }
@@ -379,6 +378,7 @@ bool MotionHoming::extractAndExecNextCmd(AxesParams &axesParams, String& debugCm
                         _homingStrPos++;
                         Log.notice("%sSetting at home for axis %d\n", MODULE_PREFIX, axisIdx);
                         debugCmdStr = "Home";
+                        _isHomedOk = true;
                     }
                     break;
                 }

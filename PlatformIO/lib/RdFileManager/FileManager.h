@@ -47,6 +47,7 @@ public:
         _chunkedFileLen = 0;
         _chunkedFilePos = 0;
         _chunkedFileInProgress = false;
+        _chunkedFilename = "";
         _pSDCard = NULL;
         _fileSysMutex = xSemaphoreCreateMutex();
     }
@@ -77,7 +78,7 @@ public:
 
     // Start access to a file in chunks
     bool chunkedFileStart(const String& fileSystemStr, const String& filename, bool readByLine);
-    void chunkedFileStop() {_chunkedFileInProgress = false;};
+    void chunkedFileStop() {_chunkedFileInProgress = false;_chunkedFilename="";};
 
     // Get next chunk of jfile
     uint8_t* chunkFileNext(String& filename, int& fileLen, int& chunkPos, int& chunkLen, bool& finalChunk);
@@ -86,7 +87,7 @@ public:
     int getFileLen() {return _chunkedFileLen;};
     int getFilePlaying() {return _chunkedFileInProgress;};
     String getFileName() {return _chunkedFilename;}
-
+    bool isCacheValid() {return _cachedFileListValid;}
 
     // Get file name extension
     static String getFileExtension(String& filename);

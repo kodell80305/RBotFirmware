@@ -38,10 +38,18 @@ void DebugLoopTimer::service()
         // Find slowest loop activity
         char slowest1Str[200];
         strcpy(slowest1Str, "");
+        char debugArray[_maxTimingBlocks*10];      
+        char *cp = debugArray;
+        int cnt;
+
         int curSlowestIdx = 0;
         for (int i = 1; i < _maxTimingBlocks; i++)
         {
-            if (_blockMaxTime[i] > _blockMaxTime[curSlowestIdx])
+            cnt = sprintf(cp, "%ld,", _blockMaxTime[i]);
+            if(cnt > 0) {
+                    cp += cnt;
+            }
+            if (_blockMaxTime[i] > _blockMaxTime[curSlowestIdx]) 
                 curSlowestIdx = i;
         }
         if (_blockMaxTime[curSlowestIdx] != 0)
@@ -72,7 +80,9 @@ void DebugLoopTimer::service()
         String totalStr = millisStr + String(" ") + programInfoStr +
                  String(" Avg ") + averageStr + String("uS ") + 
                  maxMinStr + String(" ") + slowest1Str + String("\n");
-        Log.notice(totalStr.c_str());
+     //   Log.notice(totalStr.c_str());
+     Serial.println(totalStr);
+
         _lastDebugLoopTime = millis();
 
         // Clear values for next reporting interval

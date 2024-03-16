@@ -99,9 +99,6 @@ RdOTAUpdate otaUpdate;
 
 //Display
 
-#include "Display.h"
-SerialDisplay display;
-#include "RobotMotion/MotionControl/i2s_lcl.h"
 
 // Hardware config
 static const char *hwConfigJSON = {
@@ -191,6 +188,11 @@ RestAPIRobot restAPIRobot(_workManager, fileManager);
 // Debug loop used to time main loop
 #include "DebugLoopTimer.h"
 
+
+#include "Display.h"
+SerialDisplay display(_workManager);
+#include "RobotMotion/MotionControl/i2s_lcl.h"
+
 // Debug loop timer and callback function
 void debugLoopInfoCallback(String &infoStr)
 {
@@ -273,6 +275,11 @@ void setup()
     // Led Strip
     ledStrip.setup(&robotConfig, "robotConfig/ledStrip");
 
+    
+    i2s_init();
+
+    display.setup(hwConfig, restAPIEndpoints);
+
     // Add debug blocks
     debugLoopTimer.blockAdd(0, "LoopTimer");
     debugLoopTimer.blockAdd(1, "WiFi");
@@ -294,9 +301,6 @@ void setup()
     
 
 
-    i2s_init();
-
-    display.setup(hwConfig, restAPIEndpoints);
 
     // Reconfigure the robot and other settings
     _workManager.reconfigure();
@@ -375,22 +379,8 @@ void loop()
         // Send changed status
         String newStatus;
         _workManager.queryStatus(newStatus);
-        webServer.sendAsyncEvent(newStatus.c_str(), "status");
-
-        String fileName; 
-
-        if(fileManager.getFilePlaying()) {
-
-            fileName = fileManager.getFileName();
-        } else {
-            if(_workManager.evaluatorsBusy(false)) {
-                    fileName = _workManager.evaluatorsPattern();
-            } else {
-                    fileName = "";
-            }
-        }      
-        display.status(newStatus, fileName);
-
+        webServer.sendAsyncEvent(newStatus.c_str(), "status");   
+        display.status(newStatus, fileManager);
     }
     debugLoopTimer.blockEnd(11);
 

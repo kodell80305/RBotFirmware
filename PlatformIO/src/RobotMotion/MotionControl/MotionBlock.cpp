@@ -93,7 +93,7 @@ void MotionBlock::forceInBounds(float &val, float lowBound, float highBound)
 
 void MotionBlock::setEndStopsToCheck(AxisMinMaxBools &endStopCheck)
 {
-    Log.verbose("%sSet test endstops %x\n", MODULE_PREFIX, endStopCheck.uintVal());
+    //Log.trace("%sSet test endstops %x\n", MODULE_PREFIX, endStopCheck.uintVal());
     _endStopsToCheck = endStopCheck;
 }
 

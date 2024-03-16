@@ -8,7 +8,10 @@
 #include <WiFiClient.h>
 #include <WiFiUdp.h>
 #include "CommandSerial.h"
+#include "WorkManager/WorkManager.h"
 #include "RestAPIEndpoints.h"
+#include "FileManager.h"
+
 
 typedef void (*CmdHandler)(char *DisplayData);
 
@@ -18,32 +21,45 @@ struct Commands {
     CmdHandler handler;
 };
 
+#define FILES_PER_PAGE 5
+//todo - HANDLE THIS BETTER
+#define MAX_FILES 200
 
-
+#if 0
 class Display 
 {
     //Disable copy/construction;
 public:
     Display() {};
 #ifdef ENABLE_DISPLAY
-    void setup(ConfigBase &hwConfig,  RestAPIEndpoints &endpoints);
+    void setup(ConfigBase &hwConfig,  RestAPIEndpoints &endpoints, 
+        FileManager &fileManager, WorkManager &workManager);
     void service();
-    void status(String newstatus, String fileName);
+    void status(String newstatus);
 #else
     //External interface 
-    void setup(ConfigBase &hwConfig,  RestAPIEndpoints &endpoints) {};
+    void setup(ConfigBase &hwConfig,  RestAPIEndpoints &endpoints, 
+        FileManager &fileManager, WorkManager &workManager) {};
     void service() {};
     void status(String newstatus, String fileName) []
 #endif
 };
+#endif
 
-class SerialDisplay  : public Display
+class SerialDisplay    //: public Display
 {
 public:
-    SerialDisplay();
-    void setup(ConfigBase &hwConfig,  RestAPIEndpoints &endpoints);
+
+   SerialDisplay( WorkManager &workManager) :
+         _workManager(workManager) {
+        lastFilePlayed = "";
+        //SerialDisplay should be a singleton -
+        //TODO - check if it exists, disallow copy, etc.
+    }
+
+    void setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints);
     void service();
-    void status(String newstatus, String fileName);
+    void status(String newstatus, FileManager& fileManager);
 
     static SerialDisplay *getInstance();
 
@@ -54,16 +70,51 @@ public:
     void handleGreen(char *DisplayData);
     void handleBlue(char *DisplayData);
     void handleFileSelect(char *DisplayData);
+    void handleSettings(char *DisplayData);
+    void handleMainMenu(char *DisplayData);
+    void handleRbotPos(char *DisplayData);
+    void handleManualCtl(char *DisplayData);
+
 private:
     int readSerialDisplay();
-    void writeSerialDisplay(const char *sendStr);
+    void writeSerialDisplay(const char *sendStr, bool blocking=true);
+    void serviceSerialDisplay();
+    void calculateUptime(char *timeStr, int len);
+    void updateFileList(FileManager& _fileManager);
+
 
     static const uint16_t bufferSize = 128;
     char DisplayDataRx[bufferSize+1];
     uint16_t displayIdx;
     uint16_t ffCount;
 
-    RestAPIEndpoints _restAPIEndpoints;
+    RestAPIEndpoints _restAPIEndpoints; 
+    WorkManager _workManager;
+    FileManager _fileManager;
 
-   
+    String lastFilePlayed;
+    int robotStatus;
+    int DisplayPage;
+
+#define BUF_SIZE 2048
+    char buffer_out[BUF_SIZE];
+    int out_rd;
+    int out_wr;
+
+
+
+    String filename[MAX_FILES];
+    String fileList;
+    int maxFiles;
+
+
+};
+
+enum {
+    SPLASHSCREEN,
+    MAIN_MENU,
+    FILESELECT,
+    RBOTPOS,
+    MANUALCTL,
+    SETTINGS
 };

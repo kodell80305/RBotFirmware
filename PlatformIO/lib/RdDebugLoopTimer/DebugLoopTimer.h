@@ -24,7 +24,7 @@ private:
     DebugLoopTimer_InfoStrCb _infoStrCallback;
 
     // Block Timing
-    static const int _maxTimingBlocks = 15;
+    static const int _maxTimingBlocks = 20;
     unsigned long _blockStartTime[_maxTimingBlocks];
     unsigned long _blockMaxTime[_maxTimingBlocks];
     String _blockName[_maxTimingBlocks];

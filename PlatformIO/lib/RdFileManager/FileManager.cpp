@@ -628,6 +628,7 @@ uint8_t* FileManager::chunkFileNext(String& filename, int& fileLen, int& chunkPo
         {
             finalChunk = true;
             _chunkedFileInProgress = false;
+            _chunkedFilename = "";
             chunkLen = 0;
         }
         else
@@ -648,6 +649,7 @@ uint8_t* FileManager::chunkFileNext(String& filename, int& fileLen, int& chunkPo
         {
             finalChunk = true;
             _chunkedFileInProgress = false;
+            _chunkedFilename = "";
         }
 
     }

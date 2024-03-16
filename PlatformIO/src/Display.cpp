@@ -463,6 +463,9 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
             snprintf(sendStr, sizeof(sendStr), "t5.txt=\"CPU Temp %7.2f\"", 9.0*temperatureRead()/5.0 + 32.0);
             writeSerialDisplay(sendStr);
+
+            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.20 /03/15/2024\"");
+            writeSerialDisplay(sendStr);
         }
     }
 

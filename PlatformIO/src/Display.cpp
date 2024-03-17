@@ -74,6 +74,7 @@ void SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
     fileList = "";
 
     _instance = this;
+    sleepOn = false;
 
     //Reset Display
     out_rd = 0;
@@ -197,6 +198,17 @@ SerialDisplay::handleBlue(char *DisplayData) {
 
 void
 SerialDisplay::handlePlay(char *DisplayData) {
+
+    //See if file ends in .param - strip off the playFile/
+
+    String strDisplay=DisplayData;
+
+    if(strDisplay.indexOf(".param")) {
+        //This is a param file
+        lastParam=strDisplay.substring(9, strDisplay.indexOf(".param"));
+    } else {
+        lastParam="";
+    }
     Log.trace("Display cmdStr %s\n", DisplayData);
     String retStr;
     _restAPIEndpoints.handleApiRequest(DisplayData, retStr);
@@ -309,12 +321,16 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     int isPaused;
     int isHomed;
     int isHoming = 0;
+    int end0, end1;
 
     char sendStr[200];
 
     sscanf(Qd.c_str(), "%d",&queueLen);
     sscanf(pause.c_str(),"%d", &isPaused);
     sscanf(Hmd.c_str(), "%d", &isHomed);
+    //[[1,0],[0,0],[0,0]]
+    sscanf(end.c_str(), "[[%d,0],[%d", &end0, &end1);
+
     if(Homing.length() > 0) {
         sscanf(Homing.c_str(), "%d", &isHoming);
     }
@@ -342,6 +358,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
         }
         if(isHoming) {
             snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Homing\"");
+
             fileName = "homing";
             robotStatus = ROBOT_HOMING;
 
@@ -363,6 +380,10 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
                     fileName = _workManager.evaluatorsPattern();
                 }
             }
+
+            if(lastParam != "") {
+                fileName = lastParam;
+            }
         
             int lpos = fileName.lastIndexOf('/');
 
@@ -373,9 +394,11 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
             if(isPaused) {
                 robotStatus = ROBOT_PAUSED;
+
                 snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Pause %s %3.1f %% done\"", fileName.c_str(), pos);
             }  else {
-                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f %% done\"", fileName.c_str(), pos);
+
+                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f Que %% done (queue %d)\"", fileName.c_str(), pos, queueLen);
             }
         }
 
@@ -385,7 +408,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
         robotStatus = ROBOT_IDLE;
 
         if(isHomed == 0) {
-            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"%s %s Not homed\"",  WiFi.getHostname(), WifiIP.c_str());
+            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"%s %s (not homed)\"",  WiFi.getHostname(), WifiIP.c_str());
         } else {
             snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Done %s\"",  lastFilePlayed.c_str());
             
@@ -402,8 +425,13 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
         snprintf(sendStr, sizeof(sendStr), "p[0].progress.val=%d", (int) pos);
         writeSerialDisplay(sendStr);
 
-        snprintf(sendStr,
-        sizeof(sendStr), "p[0].fileName.txt=\"%s \"", fileName.c_str());
+        snprintf(sendStr,sizeof(sendStr), "p[0].fileName.txt=\"%s \"", fileName.c_str());
+        writeSerialDisplay(sendStr);
+
+        snprintf(sendStr,sizeof(sendStr), "end0.txt=\"end0:%s\"", (end0 == 1) ? "hit" : "not hit");
+        writeSerialDisplay(sendStr);
+
+        snprintf(sendStr,sizeof(sendStr), "end1.txt=\"end1:%s\"", (end1== 1) ? "hit" : "not hit");
         writeSerialDisplay(sendStr);
 
         //Also send Hmd & WifiIP (homing might be useful also)
@@ -446,7 +474,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
         }
 
     //SCALE RHOE
-        rho /=3.57;   //TODO = get from hardware config
+        rho /=3.60;   //TODO = get from hardware config
 
         snprintf(sendStr, sizeof(sendStr), "p[0].ABC.txt=\"%3.0f deg / %3.0f %%\"", theta,rho);
         writeSerialDisplay(sendStr);
@@ -466,6 +494,18 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
             snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.20 /03/15/2024\"");
             writeSerialDisplay(sendStr);
+
+            snprintf(sendStr, sizeof(sendStr), "t7.txt=\"Robot ver 0.20 /03/15/2024\"");
+            writeSerialDisplay(sendStr);
+
+            snprintf(sendStr, sizeof(sendStr), "t7.txt=\"workMgr: B:%d A:%d, que %d \"", 
+                    _workManager.evaluatorsBusy(true) ? 1 : 0, 
+                    _workManager.canAcceptWorkItem() ? 1 : 0,
+                    queueLen),
+                    
+            writeSerialDisplay(sendStr);
+
+            
         }
     }
 
@@ -526,6 +566,26 @@ SerialDisplay::handleManualCtl(char *DisplayData) {
     DisplayPage = MANUALCTL;
 
 }
+void
+SerialDisplay::handleSleep(char *DisplayData) {
+    sleepOn = true;
+
+    Log.notice("handleSleep called\n");
+
+    for(int i=0; i < NUM_LEDS; i++) {
+        strip.setPixelColor(i+0, strip.Color(0, 0, 0));
+    }
+}
+void
+SerialDisplay::handleWake(char *DisplayData) {
+    sleepOn = false;
+
+    Log.notice("handleWakeup called\n");
+        
+    for(int i=0; i < NUM_LEDS; i++) {
+        strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
+    }
+}
 
 #define MAX_CHAR 15
 
@@ -554,15 +614,15 @@ SerialDisplay::readSerialDisplay() {
                 return idx;
             }
         } else {
-            if(isprint(RxTemp)) {
+            //if(isprint(RxTemp)) {
                 DisplayDataRx[displayIdx++] = RxTemp;
                 if (displayIdx >= bufferSize) {
                     idx = bufferSize - 1;
                     DisplayDataRx[idx] = 0;
                     ffCount = 0;
                     return idx;
-                }
-            }  //else we should handle this - it's a Display return code 
+              //  }
+            }  
         }
     }
 #endif
@@ -616,6 +676,10 @@ handleManualCtl(char *DisplayData) {
     SerialDisplay::getInstance()->handleManualCtl(DisplayData);
 }
 void
+handleSleep(char *DisplayData) {
+    SerialDisplay::getInstance()->handleSleep(DisplayData);
+}
+void
 handleNop(char *DisplayData) {};
 
 #define NUM_CMDS 11
@@ -632,6 +696,7 @@ Commands commands[] = {
     { "MainMenu", handleMainMenu},
     { "RbotPos", handleRbotPos},
     { "ManualControl", handleManualCtl},
+    { "Sleep", handleSleep},
     { "", handleNop}
 };
 
@@ -646,23 +711,43 @@ void SerialDisplay::serviceSerialDisplay() {
 void SerialDisplay::service() {
 
     serviceSerialDisplay();
+    int bytesRcvd;
 
-    if(readSerialDisplay() > 0) {
+    if((bytesRcvd = readSerialDisplay()) > 0) {
         //Parse string & do appropriate actions
         //Serial.println(DisplayDataRx);
         //If first character is "/", 
-        Log.notice("Display received %s\n", DisplayDataRx);
 
-        for(int i=0; i < sizeof(commands)/sizeof(Commands) && commands[i].cmds && (strlen(commands[i].cmds) > 0); i++) {
-            //Log.notice("Checking received %s \n", commands[i].cmds);
+
+
+        if(bytesRcvd == 1)  {
+            //This is a status code ..
+            Log.notice("Display received %x\n", DisplayDataRx[0]);
+
+            if(DisplayDataRx[0] == 0x86) {
+                handleSleep(DisplayDataRx);
+            }
+        } else {
+            //If we're sleeping, any character from screen should wake us up ...
+            if(sleepOn) {
+                handleWake(DisplayDataRx);
+            }
+
+            Log.notice("Display received %s\n", DisplayDataRx);
+
+
+
+            for(int i=0; i < sizeof(commands)/sizeof(Commands) && commands[i].cmds && (strlen(commands[i].cmds) > 0); i++) {
+                //Log.notice("Checking received %s \n", commands[i].cmds);
 
     
-            if(!strncmp(DisplayDataRx, commands[i].cmds, strlen(commands[i].cmds))) {
-                Log.notice("Received command %s\n", commands[i].cmds);
-                commands[i].handler(DisplayDataRx);
-                serviceSerialDisplay();
-                return;
-             }
+              if(!strncmp(DisplayDataRx, commands[i].cmds, strlen(commands[i].cmds))) {
+                   Log.notice("Received command %s\n", commands[i].cmds);
+                  commands[i].handler(DisplayDataRx);
+                  serviceSerialDisplay();
+                  return;
+                }
+            }
         }
 
     }

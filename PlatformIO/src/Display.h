@@ -11,6 +11,7 @@
 #include "WorkManager/WorkManager.h"
 #include "RestAPIEndpoints.h"
 #include "FileManager.h"
+#include "LedStrip.h"
 
 
 typedef void (*CmdHandler)(char *DisplayData);
@@ -50,8 +51,8 @@ class SerialDisplay    //: public Display
 {
 public:
 
-   SerialDisplay( WorkManager &workManager) :
-         _workManager(workManager) {
+   SerialDisplay( WorkManager &workManager, LedStrip &ledStrip) :
+         _workManager(workManager) , _ledStrip(ledStrip){
         lastFilePlayed = "";
         //SerialDisplay should be a singleton -
         //TODO - check if it exists, disallow copy, etc.
@@ -93,6 +94,7 @@ private:
     RestAPIEndpoints _restAPIEndpoints; 
     WorkManager _workManager;
     FileManager _fileManager;
+    LedStrip _ledStrip;
 
     String lastFilePlayed;
     String lastParam;

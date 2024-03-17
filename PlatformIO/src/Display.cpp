@@ -8,7 +8,7 @@
 #include "HardwareSerial.h"
 #include <WiFi.h>
 
-#include <Adafruit_NeoPixel.h>
+
 
 static SerialDisplay *_instance;
 
@@ -16,10 +16,13 @@ SerialDisplay *SerialDisplay::getInstance() {
     return _instance;
 }
 
-
+#ifdef ENABLE_LED
+#include <Adafruit_NeoPixel.h>
 #define NUM_LEDS 178
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_WS2812B_PIN, NEO_GRB);
+#endif
+
 int redVal=0;
 int blueVal=255;
 int greenVal=0;
@@ -28,14 +31,14 @@ int dimVal=75;
 void
 lcd_setup() {
 
-   
+#ifdef ENABLE_LED
     strip.begin();
     strip.setBrightness(255);
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));    }
     strip.show();
 
-
+#endif
 }
                            
 //For MKS Tiny Bee
@@ -168,32 +171,35 @@ void
 SerialDisplay::handleRed(char *DisplayData) {
     sscanf(DisplayData, "ledRed %d", &redVal);
     Log.trace("Display set red to %d %s\n", redVal, DisplayData);
-    
+#ifdef ENABLE_LED
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
     }
     strip.show();
+#endif
 }
 void
 SerialDisplay::handleGreen(char *DisplayData) {
     sscanf(DisplayData, "ledGreen %d", &greenVal);
     Log.trace("Display set green to %d %s\n", greenVal, DisplayData);
-    
+#ifdef ENABLE_LED
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
     }
     strip.show();
+#endif
 }
 
 void
 SerialDisplay::handleBlue(char *DisplayData) {
     sscanf(DisplayData, "ledBlue %d", &blueVal);
     Log.trace("Displayset blue to %d %s\n", blueVal, DisplayData);
-    
+#ifdef ENABLE_LED
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
     }
     strip.show();
+#endif
 }
 
 void
@@ -398,7 +404,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
                 snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Pause %s %3.1f %% done\"", fileName.c_str(), pos);
             }  else {
 
-                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f Que %% done (queue %d)\"", fileName.c_str(), pos, queueLen);
+                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f%% done (queue %d)\"", fileName.c_str(), pos, queueLen);
             }
         }
 
@@ -572,19 +578,24 @@ SerialDisplay::handleSleep(char *DisplayData) {
 
     Log.notice("handleSleep called\n");
 
+#ifdef ENABLE_LED
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(0, 0, 0));
     }
+#endif
+    handleExec("/exec/sleep");
 }
 void
 SerialDisplay::handleWake(char *DisplayData) {
     sleepOn = false;
 
     Log.notice("handleWakeup called\n");
-        
+#ifdef ENABLE_LED   
     for(int i=0; i < NUM_LEDS; i++) {
         strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
     }
+#endif
+    handleExec("/exec/resume");
 }
 
 #define MAX_CHAR 15

@@ -190,7 +190,7 @@ RestAPIRobot restAPIRobot(_workManager, fileManager);
 
 
 #include "Display.h"
-SerialDisplay display(_workManager);
+SerialDisplay display(_workManager, ledStrip);
 #include "RobotMotion/MotionControl/i2s_lcl.h"
 
 // Debug loop timer and callback function
@@ -396,7 +396,8 @@ void loop()
 
     // Service the LED Strip
     debugLoopTimer.blockStart(14);
-    ledStrip.service();
+    //temp - way to determin if robot is idle
+    ledStrip.service(_workManager.queueIsEmpty() && !_workManager.evaluatorsBusy(true));
     debugLoopTimer.blockEnd(14);
 
     debugLoopTimer.blockStart(15);

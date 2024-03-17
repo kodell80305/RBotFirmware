@@ -57,8 +57,10 @@ void SerialConsole::service()
             return;
         _prevChar = ch;
 
+        Serial.printf("Current line %s %d\n", _curLine.c_str(), _curLine.length());
+
         // Check if empty line - show menu
-        if (_curLine.length() <= 0)
+        if (_curLine.length() <= 1)
         {
             Serial.printf("Configuration Options ch=%d\n", ch);
             // Show endpoints

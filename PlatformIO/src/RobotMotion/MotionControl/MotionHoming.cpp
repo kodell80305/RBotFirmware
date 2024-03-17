@@ -43,6 +43,11 @@ bool MotionHoming::isHomingInProgress()
     return _homingInProgress;
 }
 
+void MotionHoming::stop()
+{
+    _homingInProgress = false;
+}
+
 bool MotionHoming::isHomedOk()
 {
     return _isHomedOk;

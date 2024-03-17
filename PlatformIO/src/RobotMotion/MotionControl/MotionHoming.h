@@ -48,6 +48,7 @@ public:
     void homingStart(RobotCommandArgs &args);
     void service(AxesParams &axesParams);
     bool extractAndExecNextCmd(AxesParams &axesParams, String& debugCmdStr);
+    void stop();
 
 private:
     void moveTo(RobotCommandArgs &args);

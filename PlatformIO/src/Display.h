@@ -74,6 +74,8 @@ public:
     void handleMainMenu(char *DisplayData);
     void handleRbotPos(char *DisplayData);
     void handleManualCtl(char *DisplayData);
+    void handleSleep(char *DisplayData);
+    void handleWake(char *DisplayData);
 
 private:
     int readSerialDisplay();
@@ -93,6 +95,7 @@ private:
     FileManager _fileManager;
 
     String lastFilePlayed;
+    String lastParam;
     int robotStatus;
     int DisplayPage;
 
@@ -107,7 +110,7 @@ private:
     String fileList;
     int maxFiles;
 
-
+    bool sleepOn;
 };
 
 enum {

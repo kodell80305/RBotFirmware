@@ -97,9 +97,6 @@ MQTTManager mqttManager(wifiManager, restAPIEndpoints);
 #include <RdOTAUpdate.h>
 RdOTAUpdate otaUpdate;
 
-//Display
-
-
 // Hardware config
 static const char *hwConfigJSON = {
     "{"

@@ -92,9 +92,8 @@ private:
     uint16_t ffCount;
 
     RestAPIEndpoints _restAPIEndpoints; 
-    WorkManager _workManager;
-    FileManager _fileManager;
-    LedStrip _ledStrip;
+    WorkManager& _workManager;
+    LedStrip& _ledStrip;
 
     String lastFilePlayed;
     String lastParam;
@@ -106,7 +105,10 @@ private:
     int out_rd;
     int out_wr;
 
-
+    uint8_t brightness;
+    uint8_t redVal;
+    uint8_t blueVal;
+    uint8_t greenVal;
 
     String filename[MAX_FILES];
     String fileList;

@@ -6,7 +6,14 @@
 #include "Utils.h"
 #include "ConfigNVS.h"
 #include "ConfigPinMap.h"
+#include <FastLED.h>
 
+// List of patterns to cycle through.  Each is defined as a separate function below.
+class LedStrip;
+
+typedef void (LedStrip::*SimplePatterns)();
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+#define NUM_PATTERNS 6
 
 class LedStrip
 {
@@ -21,6 +28,14 @@ public:
 
     const char* getConfigStrPtr();
     void setSleepMode(int sleep);
+    void rainbow();
+    void addGlitter( fract8 chanceOfGlitter);
+    void rainbowWithGlitter();
+    void confetti();
+    void sinelon();
+    void bpm();
+    void nextPattern();
+    void juggle();
 
 private:
     void configChanged();
@@ -30,24 +45,16 @@ private:
 private:
     String _name;
     ConfigBase* _pHwConfig;
-    static const int NUM_SENSOR_VALUES = 100;
     bool _isSetup;
     bool _isSleeping;
     int _ledPin;
-    int _sensorPin;
-
     bool _ledOn;
 
-    bool _autoDim = false;
     bool ledConfigChanged = false;
-    
-    int sensorReadingCount = 0;
+
 
     // Store the settings for LED in NV Storage
     ConfigBase& _ledNvValues;
-
-    // Store a number of sensor readings for smoother transitions
-    uint16_t sensorValues[NUM_SENSOR_VALUES];
 
 
     uint8_t _ledValue = -1;
@@ -55,13 +62,18 @@ private:
     uint8_t _blueVal;
     uint8_t _greenVal;
     uint8_t _numLeds;
-
-    // LEDC library controls
-    static const int LED_STRIP_PWM_FREQ = 7000;
-    static const int LED_STRIP_LEDC_CHANNEL = 0;
-    static const int LED_STRIP_LEDC_RESOLUTION = 8;
+    volatile bool _ledChanged;
 
     ulong idleTime;
+
+    CRGB *leds;
+
+
+    uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+    uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+     SimplePatterns gPatterns[NUM_PATTERNS] ={&LedStrip::rainbow, &LedStrip::rainbowWithGlitter, &LedStrip::confetti, &LedStrip::sinelon, &LedStrip::juggle, &LedStrip::bpm };
+
 
     //Adafruit_NeoPixel strip;
 };

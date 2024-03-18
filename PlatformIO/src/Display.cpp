@@ -8,6 +8,7 @@
 #include "HardwareSerial.h"
 #include <WiFi.h>
 
+int dimVal=75;
 
 
 static SerialDisplay *_instance;
@@ -16,30 +17,6 @@ SerialDisplay *SerialDisplay::getInstance() {
     return _instance;
 }
 
-#ifdef ENABLE_LED
-#include <Adafruit_NeoPixel.h>
-#define NUM_LEDS 178
-
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_WS2812B_PIN, NEO_GRB);
-#endif
-
-int redVal=0;
-int blueVal=255;
-int greenVal=0;
-int dimVal=75;
-
-void
-lcd_setup() {
-
-#ifdef ENABLE_LED
-    strip.begin();
-    strip.setBrightness(255);
-    for(int i=0; i < NUM_LEDS; i++) {
-        strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));    }
-    strip.show();
-
-#endif
-}
                            
 //For MKS Tiny Bee
 //#define RXD2 16 //todo - ADD TO .json file
@@ -66,9 +43,9 @@ void SerialDisplay::writeSerialDisplay(const char *sendStr, bool blocking) {
 #endif
 }
 
-//SDFS SD = SDFS(FSImplPtr(new VFSImpl()));
 
-void SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
+void 
+SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
 #ifdef SERIAL_DISPLAY
     Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
     Serial2.setRxBufferSize(256);
@@ -84,25 +61,6 @@ void SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
     out_wr = 0;
 
     writeSerialDisplay("rest");
-
-    lcd_setup();         //TMP
-
-
-    #if 0
-    // Get config
-    ConfigBase otaConfig(config.getString("OTAUpdate", "").c_str());
-    _otaEnabled = otaConfig.getLong("enabled", 0) != 0;
-    _otaDirectEnabled = (otaConfig.getLong("directOk", 1) != 0) && _otaEnabled;
-    // Project name must match the file store naming
-    _projectName = projectName;
-    _currentVers = currentVers;
-    // Update server
-    _updateServerName = otaConfig.getString("server", "");
-    _updateServerPort = otaConfig.getLong("port", 80);
-    // Init timer
-    _updateStateEntryMs = millis();
-#endif
-
 }
 
 void
@@ -117,10 +75,11 @@ SerialDisplay::handleSplash(char *DisplayData) {
     sprintf(sendStr, "dim=%d", dimVal);
     writeSerialDisplay(sendStr);
 
+    _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
+
     sprintf(sendStr, "p[0].ledRed.val=%d", redVal);
     writeSerialDisplay(sendStr);
 
-    
     sprintf(sendStr, "p[0].ledGreen.val=%d", greenVal);
     writeSerialDisplay(sendStr);
     
@@ -169,37 +128,27 @@ SerialDisplay::handleFileSelect(char *DisplayData) {
 
 void
 SerialDisplay::handleRed(char *DisplayData) {
+
+    _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
     sscanf(DisplayData, "ledRed %d", &redVal);
     Log.trace("Display set red to %d %s\n", redVal, DisplayData);
-#ifdef ENABLE_LED
-    for(int i=0; i < NUM_LEDS; i++) {
-        strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
-    }
-    strip.show();
-#endif
+    _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 }
 void
 SerialDisplay::handleGreen(char *DisplayData) {
+    _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
     sscanf(DisplayData, "ledGreen %d", &greenVal);
     Log.trace("Display set green to %d %s\n", greenVal, DisplayData);
-#ifdef ENABLE_LED
-    for(int i=0; i < NUM_LEDS; i++) {
-        strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
-    }
-    strip.show();
-#endif
+    _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 }
 
 void
 SerialDisplay::handleBlue(char *DisplayData) {
+    _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
     sscanf(DisplayData, "ledBlue %d", &blueVal);
     Log.trace("Displayset blue to %d %s\n", blueVal, DisplayData);
-#ifdef ENABLE_LED
-    for(int i=0; i < NUM_LEDS; i++) {
-        strip.setPixelColor(i+0, strip.Color(redVal, greenVal, blueVal));
-    }
-    strip.show();
-#endif
+    _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
+
 }
 
 void
@@ -577,13 +526,7 @@ SerialDisplay::handleSleep(char *DisplayData) {
     sleepOn = true;
 
     Log.notice("handleSleep called\n");
-
-#ifdef ENABLE_LED
-    for(int i=0; i < NUM_LEDS; i++) {
-        strip.setPixelColor(i+0, strip.Color(0, 0, 0));
-    }
-#endif
-    handleExec("/exec/sleep");
+    //handleExec("/exec/sleep");
 }
 void
 SerialDisplay::handleWake(char *DisplayData) {

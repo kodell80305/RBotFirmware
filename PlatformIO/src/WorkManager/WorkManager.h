@@ -3,7 +3,7 @@
 
 #pragma once
 
-// #define DEBUG_WORK_ITEM_SERVICE 1
+#define DEBUG_WORK_ITEM_SERVICE 1
 
 #include <Arduino.h>
 #include "LedStrip.h"

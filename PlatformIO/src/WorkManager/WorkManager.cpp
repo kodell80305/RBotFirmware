@@ -332,10 +332,12 @@ void WorkManager::service()
         prc = canBeProcessed(workItem);
         pStr = workItem.getString().c_str();
     }
+#if 0
     Log.trace("%sservice robotCanAccept %d waiting %d rslt %d canProc %d peek %s\n", MODULE_PREFIX,
                 _robotController.canAcceptCommand(),
                 _workItemQueue.size(), rslt, prc,
                 pStr);
+#endif
     // Note that the following debug code breaks stopping the robot
     // This is because the stop can come during the debug loop and would clear the queue
     // but the debug loop ends up replacing the items that were removed!
@@ -346,7 +348,9 @@ void WorkManager::service()
         WorkItem it;
         _workItemQueue.get(it);
         newQ.push(it);
-        Log.trace("QUEUE ITEM %d = %s\n", i, it.getCString());
+        Log.trace("QUEUE ITEM %d = %s  rc accept: %d que %d\n", i, it.getCString(),
+                _robotController.canAcceptCommand(),
+                _workItemQueue.size());
     }
     for (int i = 0; i < qSize; i++)
     {

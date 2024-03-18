@@ -190,6 +190,8 @@ RestAPIRobot restAPIRobot(_workManager, fileManager);
 SerialDisplay display(_workManager, ledStrip);
 #include "RobotMotion/MotionControl/i2s_lcl.h"
 
+uint32_t RobotStatus;        //global status value
+
 // Debug loop timer and callback function
 void debugLoopInfoCallback(String &infoStr)
 {
@@ -208,6 +210,8 @@ void setup()
     // Logging
     Serial.begin(115200);
     Log.begin(LOG_LEVEL_VERBOSE, &netLog);
+
+    RobotStatus=0;
 
     // Message
     Log.notice("%s %s (built %s %s)\n", systemType, systemVersion, buildDate, buildTime);

@@ -98,6 +98,7 @@ private:
     String lastFilePlayed;
     String lastParam;
     int robotStatus;
+    int lastRobotStatus;
     int DisplayPage;
 
 #define BUF_SIZE 2048
@@ -115,6 +116,10 @@ private:
     int maxFiles;
 
     bool sleepOn;
+    int end0;
+    int end1;
+    int last_end0;
+    int last_end1;
 };
 
 enum {
@@ -124,4 +129,12 @@ enum {
     RBOTPOS,
     MANUALCTL,
     SETTINGS
+};
+
+enum {
+    ROBOT_IDLE,
+    ROBOT_PAUSED,
+    ROBOT_PLAYFILE,
+    ROBOT_PLAYPATTERN,
+    ROBOT_HOMING
 };

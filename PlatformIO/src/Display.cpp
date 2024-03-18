@@ -59,6 +59,11 @@ SerialDisplay::setup(ConfigBase &hwConfig, RestAPIEndpoints &endpoints) {
     //Reset Display
     out_rd = 0;
     out_wr = 0;
+    end0 = 0;
+    end1 = 0;
+
+    lastRobotStatus = robotStatus = ROBOT_IDLE;
+
 
     writeSerialDisplay("rest");
 }
@@ -206,13 +211,7 @@ SerialDisplay::handleExec(char *DisplayData) {
     AxisMinMaxBools _endstops;
 #endif
 
-enum {
-    ROBOT_IDLE,
-    ROBOT_PAUSED,
-    ROBOT_PLAYFILE,
-    ROBOT_PLAYPATTERN,
-    ROBOT_HOMING
-};
+
 
 void
 SerialDisplay::calculateUptime(char *timeString, int timeStrLen) {
@@ -276,7 +275,6 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     int isPaused;
     int isHomed;
     int isHoming = 0;
-    int end0, end1;
 
     char sendStr[200];
 
@@ -285,6 +283,8 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     sscanf(Hmd.c_str(), "%d", &isHomed);
     //[[1,0],[0,0],[0,0]]
     sscanf(end.c_str(), "[[%d,0],[%d", &end0, &end1);
+
+
 
     if(Homing.length() > 0) {
         sscanf(Homing.c_str(), "%d", &isHoming);
@@ -298,7 +298,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     //      -Playing a pattern or a file
     //      -Homing
     //
-    robotStatus = ROBOT_IDLE;
+
 
     if(queueLen > 0) {  //Robot is running or paused?
 
@@ -433,6 +433,12 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
         snprintf(sendStr, sizeof(sendStr), "p[0].ABC.txt=\"%3.0f deg / %3.0f %%\"", theta,rho);
         writeSerialDisplay(sendStr);
+
+        if((end0 == 1) && (end0 !=last_end0)) {
+            Log.notice("end0 hit: - theta = %4.1f\n", theta);
+        }
+        last_end0 = end0;
+
     } else {
         if(DisplayPage == SETTINGS) {
             char timeString[100];
@@ -447,10 +453,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
             snprintf(sendStr, sizeof(sendStr), "t5.txt=\"CPU Temp %7.2f\"", 9.0*temperatureRead()/5.0 + 32.0);
             writeSerialDisplay(sendStr);
 
-            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.20 /03/15/2024\"");
-            writeSerialDisplay(sendStr);
-
-            snprintf(sendStr, sizeof(sendStr), "t7.txt=\"Robot ver 0.20 /03/15/2024\"");
+            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.21` /03/18/2024\"");
             writeSerialDisplay(sendStr);
 
             snprintf(sendStr, sizeof(sendStr), "t7.txt=\"workMgr: B:%d A:%d, que %d \"", 
@@ -462,6 +465,14 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
             
         }
+    }
+
+    if(lastRobotStatus != robotStatus) {
+        lastRobotStatus = robotStatus;
+        snprintf(sendStr, sizeof(sendStr), "wav0.en=1");
+        writeSerialDisplay(sendStr);
+        Log.notice("Display status update %s\n", newStatus.c_str());
+
     }
 
    // Log.notice("Display status update %s\n", newStatus.c_str());

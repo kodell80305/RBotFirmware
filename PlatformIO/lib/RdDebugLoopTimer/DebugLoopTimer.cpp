@@ -79,9 +79,9 @@ void DebugLoopTimer::service()
 
         String totalStr = millisStr + String(" ") + programInfoStr +
                  String(" Avg ") + averageStr + String("uS ") + 
-                 maxMinStr + String(" ") + slowest1Str + String("\n");
-     //   Log.notice(totalStr.c_str());
-     Serial.println(totalStr);
+                  maxMinStr + String(" ") + slowest1Str + String("\n");
+        Log.notice(totalStr.c_str());
+     //Serial.println(totalStr);
 
         _lastDebugLoopTime = millis();
 

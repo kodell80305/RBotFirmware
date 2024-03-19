@@ -4,7 +4,7 @@
 #include "RampGenerator.h"
 #include "MotionInstrumentation.h"
 #include "../MotionPipeline.h"
-#include "../i2s_lcl.h"
+
 
 //#define USE_FAST_PIN_ACCESS 1
 
@@ -371,9 +371,6 @@ void IRAM_ATTR RampGenerator::isrStepperMotion()
 {    
     // Instrumentation code to time ISR execution (if enabled - see MotionInstrumentation.h)
     INSTRUMENT_MOTION_ACTUATOR_TIME_START
-
-    //Update i2s value - this sets values for the last interrupt
-    i2s_push_sample();
     //
     // Do a step-end for any motor which needs one - return here to avoid too short a pulse
     if (handleStepEnd())

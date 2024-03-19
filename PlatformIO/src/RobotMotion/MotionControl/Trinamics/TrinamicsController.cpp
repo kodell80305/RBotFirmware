@@ -6,7 +6,7 @@
 #include "ConfigPinMap.h"
 #include "Utils.h"
 #include "TMC5072_registers.h"
-#include "../i2s_lcl.h"
+
 
 static const char* MODULE_PREFIX = "TrinamicsController: ";
 
@@ -319,7 +319,7 @@ int TrinamicsController::getPinAndConfigure(const char* configJSON, const char* 
     if (pinIdx >= 0)
     {
         pinMode(pinIdx, direction);
-        my_digitalWrite(pinIdx, initValue);
+        digitalWrite(pinIdx, initValue);
     }
     return pinIdx;
 }
@@ -328,15 +328,15 @@ void TrinamicsController::performSel(int singleCS, int mux1, int mux2, int mux3,
 {
     if (singleCS >= 0)
     {
-        my_digitalWrite(singleCS, !en);
+        digitalWrite(singleCS, !en);
     }
     else
     {
         if ((mux1 >= 0) && (mux2 >= 0) && (mux3 >= 0) && (muxCS >= 0))
         {
-            my_digitalWrite(mux1, en ? (muxCS & 0x01) : 0);
-            my_digitalWrite(mux2, en ? (muxCS & 0x02) : 0);
-            my_digitalWrite(mux3, en ? (muxCS & 0x04) : 1);
+            digitalWrite(mux1, en ? (muxCS & 0x01) : 0);
+            digitalWrite(mux2, en ? (muxCS & 0x02) : 0);
+            digitalWrite(mux3, en ? (muxCS & 0x04) : 1);
         }
     }
 }

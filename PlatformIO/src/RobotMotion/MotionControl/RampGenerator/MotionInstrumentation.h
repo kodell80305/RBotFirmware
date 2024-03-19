@@ -24,7 +24,7 @@
 #include <ArduinoLog.h>
 #include "../MotionRingBuffer.h"
 #include "ConfigPinMap.h"
-#include "../i2s_lcl.h"
+
 
 #include <vector>
 
@@ -229,7 +229,7 @@ public:
 #ifdef USE_FAST_PIN_ACCESS
             digitalWriteFast(_pinNum, !pinReadFast(_pinNum));
 #else
-            my_digitalWrite(_pinNum, !digitalRead(_pinNum));
+            digitalWrite(_pinNum, !digitalRead(_pinNum));
 #endif
         }
     }

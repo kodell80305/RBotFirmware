@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 #include "RobotConsts.h"
-#include "../i2s_lcl.h"
+
 
 class StepperMotor
 {
@@ -46,7 +46,7 @@ class StepperMotor
                 _minPulseWidthUs = 1;
                 // Setup the pins
                 pinMode(pinStep, OUTPUT);
-                my_digitalWrite(pinStep, false);
+                digitalWrite(pinStep, false);
                 _pinStep = pinStep;
                 _pinDirectionSingle = pinDirectionSingle;
                 if (_pinDirectionSingle >= 0)
@@ -99,7 +99,7 @@ class StepperMotor
         bool dirnVal = _motorDirectionReversed ? dirn : !dirn;
         if (_pinDirectionSingle >= 0)
         {
-            my_digitalWrite(_pinDirectionSingle, dirnVal);
+            digitalWrite(_pinDirectionSingle, dirnVal);
         }
         else 
         {
@@ -113,7 +113,7 @@ class StepperMotor
         if (_stepCurActive)
         {
             _stepCurActive = false;
-            my_digitalWrite(_pinStep, false);
+            digitalWrite(_pinStep, false);
             return true;
         }
         return false;
@@ -126,14 +126,14 @@ class StepperMotor
             if (_pinDirectionSingle < 0)
             {
                 if (_pinDirectionMux1 >= 0)
-                    my_digitalWrite(_pinDirectionMux1, _curDirVal ? 1 : ((_muxDirectionIdx & 0x01) != 0));
+                    digitalWrite(_pinDirectionMux1, _curDirVal ? 1 : ((_muxDirectionIdx & 0x01) != 0));
                 if (_pinDirectionMux2 >= 0)
-                    my_digitalWrite(_pinDirectionMux2, _curDirVal ? 1 : ((_muxDirectionIdx & 0x02) != 0));
+                    digitalWrite(_pinDirectionMux2, _curDirVal ? 1 : ((_muxDirectionIdx & 0x02) != 0));
                 if (_pinDirectionMux3 >= 0)
-                    my_digitalWrite(_pinDirectionMux3, _curDirVal ? 1 : ((_muxDirectionIdx & 0x04) != 0));
+                    digitalWrite(_pinDirectionMux3, _curDirVal ? 1 : ((_muxDirectionIdx & 0x04) != 0));
             }
 
-            my_digitalWrite(_pinStep, true);
+            digitalWrite(_pinStep, true);
             _stepCurActive = true;
         }
 
@@ -145,12 +145,12 @@ class StepperMotor
     //         return;
 
     //     // Set direction
-    //     my_digitalWrite(_pinDirection, _motorDirectionReversed ? direction : !direction);
+    //     digitalWrite(_pinDirection, _motorDirectionReversed ? direction : !direction);
 
     //     // Step
-    //     my_digitalWrite(_pinStep, true);
+    //     digitalWrite(_pinStep, true);
     //     delayMicroseconds(_minPulseWidthUs);
-    //     my_digitalWrite(_pinStep, false);
+    //     digitalWrite(_pinStep, false);
     // }
 
     // void getPins(int &stepPin, int &dirnPin, bool &dirnReverse)

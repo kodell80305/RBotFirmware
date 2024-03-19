@@ -188,7 +188,7 @@ RestAPIRobot restAPIRobot(_workManager, fileManager);
 
 #include "Display.h"
 SerialDisplay display(_workManager, ledStrip);
-#include "RobotMotion/MotionControl/i2s_lcl.h"
+#include "I2SOut.h"
 
 uint32_t RobotStatus;        //global status value
 
@@ -277,7 +277,8 @@ void setup()
     ledStrip.setup(&robotConfig, "robotConfig/ledStrip");
 
     
-    i2s_init();
+   // i2s_init();
+    i2s_out_init();  // The I2S out must be initialized before it can access the expanded GPIO port
 
     display.setup(hwConfig, restAPIEndpoints);
 

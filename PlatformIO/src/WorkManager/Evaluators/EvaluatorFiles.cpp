@@ -65,18 +65,18 @@ bool EvaluatorFiles::isValid(WorkItem& workItem)
 bool EvaluatorFiles::execWorkItem(WorkItem& workItem)
 {
     // Form the file name
-    String fileName = workItem.getString();
-    int fileType = getFileTypeFromExtension(fileName);
+    _fileName = workItem.getString();
+    int fileType = getFileTypeFromExtension(_fileName);
     if (fileType == FILE_TYPE_UNKNOWN)
         return false;
     _fileType = fileType;
 
     // Start chunked file access
-    bool retc = _fileManager.chunkedFileStart("", fileName, true);
+    bool retc = _fileManager.chunkedFileStart("", _fileName, true);
     if (!retc)
         return false;
     Log.trace("%sstarted chunked file %s type is %s\n", MODULE_PREFIX, 
-            fileName.c_str(), (_fileType == FILE_TYPE_GCODE ? "GCODE" : "THR"));
+            _fileName.c_str(), (_fileType == FILE_TYPE_GCODE ? "GCODE" : "THR"));
     _inProgress = true;
     _firstValidLineProcessed = false;
     _interpolate = true;

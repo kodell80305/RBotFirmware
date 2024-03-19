@@ -32,6 +32,8 @@ public:
     // Control
     void stop();
 
+    String getFileName() {return _fileName;}
+
     // File types
     enum {
         FILE_TYPE_UNKNOWN,
@@ -42,6 +44,7 @@ public:
 private:
     // Filename in progress
     bool _inProgress;
+    String _fileName;
 
     // File manager & work manager
     FileManager& _fileManager;

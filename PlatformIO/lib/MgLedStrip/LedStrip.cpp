@@ -260,55 +260,60 @@ void LedStrip::service(bool robotIdle)
         return;
     }   
 
-
     if(idleTime==0) {
         idleTime = lastTime = millis();
     }
-
-    //if robot is idle for more than x seconds, start pattern:
-
-  
-    if(_ledChanged) { 
-          Log.notice("Led changed %d\n", _ledChanged);
-        updateLed();
+#if 0
+    static int debugCnt=0;
+    if(debugCnt++ > 10000) {
+        debugCnt = 0;
+        Serial.printf("robot idle %d idle time %d\n", robotIdle, millis()-idleTime);
     }
-
-    if((robotIdle && ((millis() - idleTime) > 10*60*1000UL)))
+#endif
+    //if robot is idle for more than x seconds, start pattern
+    if(robotIdle) 
     {
-        if((millis() - idleTime) > 2*60*60*1000UL) 
+        if ((millis() - idleTime) > 60*1000UL) 
         {
-            if(leds[0] != CRGB::Black) 
+
+            if((millis() - idleTime) > 2*60*60*1000UL) 
             {
-                for(int i=0; i < _numLeds; i++) 
+                if(leds[0] != CRGB::Black) 
                 {
-                    leds[i] = CRGB::Black;
-                }
-                FastLED.show(); 
+                    for(int i=0; i < _numLeds; i++) 
+                    {
+                        leds[i] = CRGB::Black;
+                    }
+                    FastLED.show(); 
          
-                Log.notice("Setting leds to idle\n");
-            }
-        } else 
-        {
-            if((millis() - lastTime) > 100) 
+                    Log.notice("Setting leds to idle\n");
+                }
+            } else 
             {
-                lastTime = millis();
-                 // Call the current pattern function once, updating the 'leds' array
-                (this->*gPatterns[gCurrentPatternNumber])();
+                if((millis() - lastTime) > 100) 
+                {
+                    lastTime = millis();
+                    // Call the current pattern function once, updating the 'leds' array
+                    (this->*gPatterns[gCurrentPatternNumber])();
 
-                // send the 'leds' array out to the actual LED strip
-                FastLED.show();  
-                // insert a delay to keep the framerate modest
-                //FastLED.delay(1000/FRAMES_PER_SECOND); 
+                    // send the 'leds' array out to the actual LED strip
+                    FastLED.show();  
+                    // insert a delay to keep the framerate modest
+                    //FastLED.delay(1000/FRAMES_PER_SECOND); 
 
-                // do some periodic updates
-                EVERY_N_MILLISECONDS( 100 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-                EVERY_N_SECONDS( 60 ) { 
-                    nextPattern();
-                    Log.notice("Current pattern %d %s\n", gCurrentPatternNumber, patternName[gCurrentPatternNumber].c_str());
-                } // change patterns periodicall
+                    // do some periodic updates
+                    EVERY_N_MILLISECONDS( 100 ) { gHue++; } // slowly cycle the "base color" through the rainbow
+                    EVERY_N_SECONDS( 60 ) { 
+                     nextPattern();
+                        Log.notice("Current pattern %d %s\n", gCurrentPatternNumber, patternName[gCurrentPatternNumber].c_str());
+                    } // change patterns periodicall
+                     
+                } 
+            
             }
-            _ledChanged = true;
+           _ledChanged = true;
         }
+
     } else {
         //if we need to, reset the led values:
         if(_ledChanged) 
@@ -319,12 +324,12 @@ void LedStrip::service(bool robotIdle)
         }
         idleTime = millis();
     }
-
     // If the switch is off or sleeping, turn off the led
     if (!_ledOn || _isSleeping)
     {
         _ledValue = 0x0;
     }
+
 }
 
 void LedStrip::configChanged()

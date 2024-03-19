@@ -318,7 +318,7 @@ bool WorkManager::execWorkItem(WorkItem& workItem)
 
 void WorkManager::service()
 {
-#ifdef DEBUG_WORK_ITEM_SERVICE
+#if 0 //DEBUG_WORK_ITEM_SERVICE
     if (!Utils::isTimeout(millis(), _debugLastWorkServiceMs, DEBUG_BETWEEN_WORK_ITEM_SERVICES_MS))
         return;
     _debugLastWorkServiceMs = millis();
@@ -349,7 +349,7 @@ void WorkManager::service()
         _workItemQueue.get(it);
         newQ.push(it);
         Log.trace("QUEUE ITEM %d = %s  rc accept: %d que %d\n", i, it.getCString(),
-                _robotController.canAcceptCommand(),
+               _robotController.canAcceptCommand(),
                 _workItemQueue.size());
     }
     for (int i = 0; i < qSize; i++)
@@ -489,6 +489,11 @@ bool WorkManager::evaluatorsBusy(bool includeFileEvaluator)
 }
 
 String WorkManager::evaluatorsPattern() {
+    return _evaluatorPatterns.getCurrentPattern();
+}
+
+String WorkManager::evaluatorsName() {
+    if (_evaluatorFiles.isBusy()) return _evaluatorFiles.getFileName();
     return _evaluatorPatterns.getCurrentPattern();
 }
 

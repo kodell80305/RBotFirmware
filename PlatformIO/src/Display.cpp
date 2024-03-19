@@ -312,33 +312,27 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
             pos = 100;
         }
         if(isHoming) {
-            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Homing\"");
+            time_t givemetime = time(NULL);
+            String WifiIP = RdJson::getString("wifiIP", "", newStatus.c_str());
 
-            fileName = "homing";
+            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Homing %s(%s) %s\"",  WiFi.getHostname(), WifiIP.c_str(), ctime(&givemetime));
+
+            fileName = "Homing";
             robotStatus = ROBOT_HOMING;
 
             lastFilePlayed = fileName;
 
         } else {
-           // Log.notice("checking filemanager active filename %s/ %s \n", fileName, _workManager.evaluatorsPattern());
+            fileName = _workManager.evaluatorsName();
             if(_workManager.evaluatorsBusy(true)) {
                 robotStatus = ROBOT_PLAYPATTERN;
-                fileName = _workManager.evaluatorsPattern();
-    
             } else {
                 robotStatus = ROBOT_PLAYFILE;
-              
-                fileName = _fileManager.getFileName();
-
-                if(fileName.length() == 0) {
-                    //See if this is a pattern
-                    fileName = _workManager.evaluatorsPattern();
-                }
             }
 
-            if(lastParam != "") {
-                fileName = lastParam;
-            }
+            //if(lastParam != "") {
+           //     fileName = lastParam;
+           // }
         
             int lpos = fileName.lastIndexOf('/');
 
@@ -353,21 +347,22 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
                 snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Pause %s %3.1f %% done\"", fileName.c_str(), pos);
             }  else {
 
-                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f%% done (queue %d)\"", fileName.c_str(), pos, queueLen);
+                snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Playing %s %3.1f%% done\"", fileName.c_str(), pos);
             }
         }
 
     } else {
 
-
+        time_t givemetime = time(NULL);
         robotStatus = ROBOT_IDLE;
 
         if(isHomed == 0) {
             String WifiIP = RdJson::getString("wifiIP", "", newStatus.c_str());
-            String tod = RdJson::getString("tod", "", newStatus.c_str());
-            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Not homed: %s %s %s\"",  WiFi.getHostname(), WifiIP.c_str(), tod.c_str());
+
+
+            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"NOT HOMED! %s(%s) %s\"",  WiFi.getHostname(), WifiIP.c_str(), ctime(&givemetime));
         } else {
-            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Done %s\"",  lastFilePlayed.c_str());
+            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Done %s %s\"",  lastFilePlayed.c_str(), ctime(&givemetime));
             
         }
 
@@ -432,7 +427,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     //SCALE RHOE
         rho /=3.60;   //TODO = get from hardware config
 
-        snprintf(sendStr, sizeof(sendStr), "p[0].ABC.txt=\"%3.0f deg / %3.0f %%\"", theta,rho);
+        snprintf(sendStr, sizeof(sendStr), "p[0].ABC.txt=\"%5.1f deg / %5.1f %%\"", theta,rho);
         writeSerialDisplay(sendStr);
 
         if((end0 == 1) && (end0 !=last_end0)) {
@@ -454,7 +449,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
             snprintf(sendStr, sizeof(sendStr), "t5.txt=\"CPU Temp %7.2f\"", 9.0*temperatureRead()/5.0 + 32.0);
             writeSerialDisplay(sendStr);
 
-            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.21` /03/18/2024\"");
+            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.22 /03/19/2024\"");
             writeSerialDisplay(sendStr);
 
             snprintf(sendStr, sizeof(sendStr), "t7.txt=\"workMgr: B:%d A:%d, que %d \"", 

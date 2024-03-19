@@ -99,6 +99,7 @@ public:
         // Check evaluators busy
     bool evaluatorsBusy(bool includeFileEvaluator);
     String evaluatorsPattern();
+    String evaluatorsName();
 
 
 private:

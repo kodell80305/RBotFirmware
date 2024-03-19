@@ -24,6 +24,8 @@
 #include <ArduinoLog.h>
 #include "../MotionRingBuffer.h"
 #include "ConfigPinMap.h"
+#include "../i2s_lcl.h"
+
 #include <vector>
 
 static constexpr int INSTRUMENT_OUTPUT_STEPS = 1000;
@@ -227,7 +229,7 @@ public:
 #ifdef USE_FAST_PIN_ACCESS
             digitalWriteFast(_pinNum, !pinReadFast(_pinNum));
 #else
-            digitalWrite(_pinNum, !digitalRead(_pinNum));
+            my_digitalWrite(_pinNum, !digitalRead(_pinNum));
 #endif
         }
     }

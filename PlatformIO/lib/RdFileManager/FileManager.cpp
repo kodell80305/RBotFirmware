@@ -653,11 +653,11 @@ uint8_t* FileManager::chunkFileNext(String& filename, int& fileLen, int& chunkPo
         }
 
     }
-
+#if 0
     Log.verbose("%schunkNext filename %s chunklen %d filePos %d fileLen %d inprog %d final %d byLine %s\n", MODULE_PREFIX, 
                     _chunkedFilename.c_str(), chunkLen, _chunkedFilePos, _chunkedFileLen, 
                     _chunkedFileInProgress, finalChunk, (_chunkOnLineEndings ? "Y" : "N"));
-
+#endif
     // Close
     fclose(pFile);
     xSemaphoreGive(_fileSysMutex);  

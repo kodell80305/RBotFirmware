@@ -256,11 +256,12 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     //"end":[[2,0],[1,0],[0,0]],"OoB":"N","num":0,"Qd":98,"Hmd":0,"pause":0,"ledOn":1,"ledValue":127,"autoDim":0,"tod":"2024-02-22 03:06:46"}
  
 
-    String WifiIP = RdJson::getString("wifiIP", "", newStatus.c_str());
+    //String WifiIP = RdJson::getString("wifiIP", "", newStatus.c_str());
     String XYZ = RdJson::getString("XYZ", "", newStatus.c_str());
-    String ABC = RdJson::getString("ABC", "", newStatus.c_str());
+    //String ABC = RdJson::getString("ABC", "", newStatus.c_str());
+
     String end = RdJson::getString("end", "", newStatus.c_str());
-    String tod = RdJson::getString("tod", "", newStatus.c_str());
+
     String pause = RdJson::getString("pause", "", newStatus.c_str());
     String Qd =  RdJson::getString("Qd","" , newStatus.c_str());
     String Hmd = RdJson::getString("Hmd", "", newStatus.c_str());
@@ -281,7 +282,6 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     sscanf(Qd.c_str(), "%d",&queueLen);
     sscanf(pause.c_str(),"%d", &isPaused);
     sscanf(Hmd.c_str(), "%d", &isHomed);
-    //[[1,0],[0,0],[0,0]]
     sscanf(end.c_str(), "[[%d,0],[%d", &end0, &end1);
 
 
@@ -363,7 +363,9 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
         robotStatus = ROBOT_IDLE;
 
         if(isHomed == 0) {
-            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"%s %s (not homed)\"",  WiFi.getHostname(), WifiIP.c_str());
+            String WifiIP = RdJson::getString("wifiIP", "", newStatus.c_str());
+            String tod = RdJson::getString("tod", "", newStatus.c_str());
+            snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Not homed: %s %s %s\"",  WiFi.getHostname(), WifiIP.c_str(), tod.c_str());
         } else {
             snprintf(sendStr, sizeof(sendStr), "p[0].status.txt=\"Done %s\"",  lastFilePlayed.c_str());
             
@@ -395,10 +397,10 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
 
         //[-218.41,-288.72,0.00]
         float x,y,z;
-        int a,b,c;
+       // int a,b,c;
         float rho, theta;
         sscanf(XYZ.c_str(), "[%f,%f,%f]",&x,&y,&z);
-        sscanf(ABC.c_str(), "[%d,%d,%d]",&a,&b,&c);
+      //  sscanf(ABC.c_str(), "[%d,%d,%d]",&a,&b,&c);
         rho = sqrt(x*x+y*y);
 
         //Motors/directions are confusing
@@ -416,7 +418,6 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
             } else {
                 //We're in 2nd quadrant
                 theta = 180-theta;
-
             }
         } else {
             if(y<0) {

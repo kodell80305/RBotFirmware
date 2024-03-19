@@ -161,7 +161,7 @@ void EvaluatorFiles::service()
             // Form the work item if valid
             if (isValid)
             {
-                Log.verbose("%sservice new line %s\n", MODULE_PREFIX, newLine.c_str());
+                //Log.verbose("%sservice new line %s\n", MODULE_PREFIX, newLine.c_str());
                 String retStr;
                 WorkItem workItem(newLine.c_str());
                 _workManager.addWorkItem(workItem, retStr);

@@ -22,7 +22,7 @@ void i2s_mask(uint8_t bitnum, uint8_t val);
 static int i2s_num = 0; // i2s port number
 static i2s_config_t i2s_config = {
      .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX),
-     .sample_rate = 44100,
+     .sample_rate = 50000,
      .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
      .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
      .communication_format = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB),
@@ -48,7 +48,7 @@ i2s_init() {
       //initialize i2s with configurations above
   i2s_driver_install((i2s_port_t)i2s_num, &i2s_config, 0, NULL);
   i2s_set_pin((i2s_port_t)i2s_num, &pin_config);
-  i2s_set_sample_rates((i2s_port_t)i2s_num, 44100); 
+  i2s_set_sample_rates((i2s_port_t)i2s_num, 50000); 
 
 
   I2S0.conf1.tx_stop_en = 0;  // set to keep xmting clks when fifo empty
@@ -67,22 +67,50 @@ i2s_init() {
   I2S0.conf_chan.tx_chan_mod=3;   //When I2S_TX_MSB_RIGHT equals 0, the right-channel data are constants in the range of REG[31:0].
   I2S0.conf.tx_msb_right=1;
 }
+// inner lock
+static portMUX_TYPE i2s_out_spinlock = portMUX_INITIALIZER_UNLOCKED;
+#    define I2S_OUT_ENTER_CRITICAL()                                                                                                       \
+        do {                                                                                                                               \
+            if (xPortInIsrContext()) {                                                                                                     \
+                portENTER_CRITICAL_ISR(&i2s_out_spinlock);                                                                                 \
+            } else {                                                                                                                       \
+                portENTER_CRITICAL(&i2s_out_spinlock);                                                                                     \
+            }                                                                                                                              \
+        } while (0)
+#    define I2S_OUT_EXIT_CRITICAL()                                                                                                        \
+        do {                                                                                                                               \
+            if (xPortInIsrContext()) {                                                                                                     \
+                portEXIT_CRITICAL_ISR(&i2s_out_spinlock);                                                                                  \
+            } else {                                                                                                                       \
+                portEXIT_CRITICAL(&i2s_out_spinlock);                                                                                      \
+            }                                                                                                                              \
+        } while (0)
+#    define I2S_OUT_ENTER_CRITICAL_ISR() portENTER_CRITICAL_ISR(&i2s_out_spinlock)
+#    define I2S_OUT_EXIT_CRITICAL_ISR() portEXIT_CRITICAL_ISR(&i2s_out_spinlock)
 
 
 void IRAM_ATTR i2s_mask(uint8_t bitnum, uint8_t val ) {
   //Set/clear bits
+  //If we're not in an interrupt, should we disable interrupts
+
+
+  I2S_OUT_ENTER_CRITICAL();
   if(val) {
     set_bits(i2s_port_data, 1 << bitnum);
   } else {
     clear_bits(i2s_port_data, 1 << bitnum);
   }
+  I2S_OUT_EXIT_CRITICAL();
+
 }
 void IRAM_ATTR
 i2s_push_sample() {
 
  // i2s_write((i2s_port_t)i2s_num, &i2s_port_data, 4, &bytes_written, 100);
   //i2s_port_data |= 0x80;
+  I2S_OUT_ENTER_CRITICAL();
   I2S0.conf_single_data = i2s_port_data << 16;
+  I2S_OUT_EXIT_CRITICAL();
 
 }
 

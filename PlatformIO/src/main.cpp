@@ -399,7 +399,7 @@ void loop()
     // Service the LED Strip
     debugLoopTimer.blockStart(14);
     //temp - way to determin if robot is idle
-    ledStrip.service(_workManager.queueIsEmpty() && !_workManager.evaluatorsBusy(true));
+    ledStrip.service(!(_robotController.wasActiveInLastNSeconds(10)));
     debugLoopTimer.blockEnd(14);
 
     debugLoopTimer.blockStart(15);

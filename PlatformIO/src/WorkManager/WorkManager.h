@@ -101,6 +101,9 @@ public:
     String evaluatorsPattern();
     String evaluatorsName();
 
+    float getTheta();
+    float getRho();
+
 
 private:
     // Execute an item of work

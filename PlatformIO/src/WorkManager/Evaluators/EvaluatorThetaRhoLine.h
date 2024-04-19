@@ -30,6 +30,8 @@ public:
     // Control
     void stop();
 
+    double getTheta() { return _curTheta; }
+    double getRho() { return _curRho; }
 private:
     // Config
     const double DEFAULT_STEP_ANGLE = M_PI / 64;

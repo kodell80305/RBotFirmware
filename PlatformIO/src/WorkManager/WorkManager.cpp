@@ -242,6 +242,17 @@ void WorkManager::addWorkItem(WorkItem& workItem, String &retStr, int cmdIdx)
     }
 }
 
+float 
+WorkManager::getTheta()
+{
+    return (float) _evaluatorThetaRhoLine.getTheta();
+}
+float 
+WorkManager::getRho()
+{
+    return (float) _evaluatorThetaRhoLine.getRho();
+}
+
 bool WorkManager::canBeProcessed(WorkItem& workItem)
 {
     // See if it is a pattern evaluator work item

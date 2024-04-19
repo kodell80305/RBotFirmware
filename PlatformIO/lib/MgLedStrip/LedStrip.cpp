@@ -45,11 +45,16 @@ void
 LedStrip::updateLed() {
     Log.notice("Updating led RGB(%d,%d,%d)", _redVal, _greenVal, _blueVal);              
     for(int i=0; i < _numLeds; i++) {
-        leds[i].setRGB(_redVal, _blueVal, _greenVal);
+        leds[i].setRGB(_redVal, _greenVal, _blueVal);
      }
      _ledChanged = false;
-    FastLED.show();  
-
+    FastLED.show(); 
+}
+void
+LedStrip::wake() {
+    _isSleeping = false;
+    _ledChanged = true;
+    updateLed();
 }
 
 void 
@@ -58,10 +63,8 @@ LedStrip::setRGB(uint8_t brightness, uint8_t redVal, uint8_t greenVal, uint8_t b
     _redVal = redVal;
     _greenVal = greenVal;
     _blueVal = blueVal;
-    _ledChanged = true;
+    updateLed();
     Log.notice("Set RGB(%d,%d,%d)\n", _redVal, _greenVal, _blueVal);  
-
-
 }
 
 void 
@@ -70,15 +73,14 @@ LedStrip::getRGB(uint8_t &brightness, uint8_t &redVal, uint8_t &greenVal, uint8_
     redVal = _redVal;
     greenVal = _greenVal;
     blueVal = _blueVal;
+    Log.notice("Get RGB(%d,%d,%d)\n", redVal, greenVal, blueVal);  
 
 }
 
 void LedStrip::setup(ConfigBase* pConfig, const char* ledStripName)
 {
 
-    leds = new CRGB[_numLeds];
 
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, _numLeds);
 
     _name = ledStripName;
     _ledChanged = true;
@@ -109,7 +111,7 @@ void LedStrip::setup(ConfigBase* pConfig, const char* ledStripName)
 
 
     // If there is no LED data stored, set to default
-    String ledStripConfigStr = _ledNvValues.getConfigString();
+    String ledStripConfigStr = ledConfig.getConfigString();
     if (ledStripConfigStr.length() == 0 || ledStripConfigStr.equals("{}")) {
         Log.trace("%sNo LED Data Found in NV Storge, Defaulting\n", MODULE_PREFIX);
         // Default to LED On, Half Brightness
@@ -117,16 +119,26 @@ void LedStrip::setup(ConfigBase* pConfig, const char* ledStripName)
         _ledValue = 0x7f;
         updateNv();
     } else {
-        _ledOn = _ledNvValues.getLong("ledOn", 0) == 1;
-        _ledValue = _ledNvValues.getLong("ledValue", 0xFF);
-        Log.trace("%sLED Setup from JSON: %s On: %d, Value: %d\n", MODULE_PREFIX, 
-                    ledStripConfigStr.c_str(), _ledOn, _ledValue);
+        _ledOn = ledConfig.getLong("ledOn", 0) == 1;
+        _ledValue = ledConfig.getLong("ledValue", 0xFF);
+        _redVal = ledConfig.getLong("red", 0);
+        _greenVal = ledConfig.getLong("green", 0);   
+        _blueVal = ledConfig.getLong("blue", 0);
+        _numLeds = ledConfig.getLong("numLeds", 0);
+
+        Log.trace("%sLED Setup from JSON: %s On: %d, Value: %d %d %d %d %d\n", MODULE_PREFIX, 
+                    ledStripConfigStr.c_str(), _ledOn, _ledValue, _redVal, _greenVal, _blueVal, _numLeds);
     }
 
     _isSetup = true;
     // Trigger initial write
     ledConfigChanged = true;
     Log.trace("%sLED Configured: On: %d, Value: %d, red %d green %d blue %d numLed %d\n", MODULE_PREFIX, _ledOn, _ledValue, _redVal, _greenVal, _blueVal, _numLeds);
+
+    leds = new CRGB[_numLeds];
+
+    FastLED.addLeds<WS2811, DATA_PIN, BRG>(leds, _numLeds);
+    //FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, _numLeds);
 }
 
 void LedStrip::updateLedFromConfig(const char * pLedJson) {
@@ -173,10 +185,22 @@ const char* LedStrip::getConfigStrPtr() {
     return _ledNvValues.getConfigCStrPtr();
 }
 
+void 
+LedStrip::chase() {
+    static int pos=0;
+    static int dir=1;
+    leds[pos] = leds[_numLeds-pos] = CRGB::Black;
+    pos += dir;
+    if(pos >= _numLeds/2) {
+        dir = -1;
+    }
+    if(pos <= 0) {
+        dir = 1;
+    }
+    leds[pos] = leds[_numLeds-pos]= CRGB::Blue;
 
-
-
-
+    
+}
 void 
 LedStrip::rainbow()  {
   // FastLED's built-in rainbow generator
@@ -242,6 +266,7 @@ LedStrip::nextPattern() {
 }
 
 String patternName[] = {
+    "chase",
     "rainbow",
     "rainbowWithGlitter",
     "confetti", 
@@ -249,6 +274,8 @@ String patternName[] = {
     "juggle", 
     "bpm"
 };
+
+#define IDLE_TIMEOUT  60*1000UL          //60 seconds
 
 void LedStrip::service(bool robotIdle)
 {
@@ -262,8 +289,9 @@ void LedStrip::service(bool robotIdle)
 
     if(idleTime==0) {
         idleTime = lastTime = millis();
+        idleTime -= IDLE_TIMEOUT;
     }
-#if 0
+#if 1
     static int debugCnt=0;
     if(debugCnt++ > 10000) {
         debugCnt = 0;
@@ -273,7 +301,7 @@ void LedStrip::service(bool robotIdle)
     //if robot is idle for more than x seconds, start pattern
     if(robotIdle) 
     {
-        if ((millis() - idleTime) > 60*1000UL) 
+        if ((millis() - idleTime) > IDLE_TIMEOUT) 
         {
 
             if((millis() - idleTime) > 2*60*60*1000UL) 

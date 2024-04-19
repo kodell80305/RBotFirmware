@@ -13,7 +13,7 @@ class LedStrip;
 
 typedef void (LedStrip::*SimplePatterns)();
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
-#define NUM_PATTERNS 6
+#define NUM_PATTERNS 7
 
 class LedStrip
 {
@@ -28,6 +28,7 @@ public:
 
     const char* getConfigStrPtr();
     void setSleepMode(int sleep);
+    void wake();
     void rainbow();
     void addGlitter( fract8 chanceOfGlitter);
     void rainbowWithGlitter();
@@ -36,6 +37,7 @@ public:
     void bpm();
     void nextPattern();
     void juggle();
+    void chase();
 
 private:
     void configChanged();
@@ -72,7 +74,7 @@ private:
     uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
     uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
-     SimplePatterns gPatterns[NUM_PATTERNS] ={&LedStrip::rainbow, &LedStrip::rainbowWithGlitter, &LedStrip::confetti, &LedStrip::sinelon, &LedStrip::juggle, &LedStrip::bpm };
+     SimplePatterns gPatterns[NUM_PATTERNS] ={&LedStrip::chase, &LedStrip::rainbow, &LedStrip::rainbowWithGlitter, &LedStrip::confetti, &LedStrip::sinelon, &LedStrip::juggle, &LedStrip::bpm };
 
 
     //Adafruit_NeoPixel strip;

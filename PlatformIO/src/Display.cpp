@@ -133,25 +133,34 @@ SerialDisplay::handleFileSelect(char *DisplayData) {
 
 void
 SerialDisplay::handleRed(char *DisplayData) {
+    int readVal;
 
     _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
-    sscanf(DisplayData, "ledRed %d", &redVal);
-    Log.trace("Display set red to %d %s\n", redVal, DisplayData);
+
+    sscanf(DisplayData, "ledRed %d", &readVal);
+    redVal = readVal;
+
+    Log.trace("Display set red to %d %d %d %s\n", redVal, greenVal, blueVal, DisplayData);
     _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 }
 void
 SerialDisplay::handleGreen(char *DisplayData) {
+    int readVal;
     _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
-    sscanf(DisplayData, "ledGreen %d", &greenVal);
-    Log.trace("Display set green to %d %s\n", greenVal, DisplayData);
+    sscanf(DisplayData, "ledGreen %d", &readVal);
+    greenVal = readVal;
+    Log.trace("Display set green to %d %d %d %s\n", redVal, greenVal, blueVal, DisplayData);
     _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 }
 
 void
 SerialDisplay::handleBlue(char *DisplayData) {
+    int readVal;
     _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
-    sscanf(DisplayData, "ledBlue %d", &blueVal);
-    Log.trace("Displayset blue to %d %s\n", blueVal, DisplayData);
+    sscanf(DisplayData, "ledBlue %d", &readVal);
+    blueVal = readVal;
+    Log.trace("Display set blue to %d %d %d %s\n",  redVal, greenVal, blueVal, DisplayData);
+   
     _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 
 }
@@ -427,11 +436,16 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
     //SCALE RHOE
         rho /=3.60;   //TODO = get from hardware config
 
+      // theta =  _workManager.getTheta();
+      //rho = _workManager.getRho();
+        snprintf(sendStr, sizeof(sendStr), " %f %f %f %f  \n", theta, rho, _workManager.getTheta(), _workManager.getRho());
+        Log.notice("%s", sendStr);
+
         snprintf(sendStr, sizeof(sendStr), "p[0].ABC.txt=\"%5.1f deg / %5.1f %%\"", theta,rho);
         writeSerialDisplay(sendStr);
 
         if((end0 == 1) && (end0 !=last_end0)) {
-            Log.notice("end0 hit: - theta = %4.1f\n", theta);
+            Log.notice("end0 hit: - theta = %5.1f\n", theta);
         }
         last_end0 = end0;
 

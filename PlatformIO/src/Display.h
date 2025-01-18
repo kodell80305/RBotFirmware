@@ -70,6 +70,7 @@ public:
     void handleRed(char *DisplayData);
     void handleGreen(char *DisplayData);
     void handleBlue(char *DisplayData);
+    void handleBrightness(char *DisplayData);
     void handleFileSelect(char *DisplayData);
     void handleSettings(char *DisplayData);
     void handleMainMenu(char *DisplayData);

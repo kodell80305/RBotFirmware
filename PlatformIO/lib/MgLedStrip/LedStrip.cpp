@@ -43,12 +43,12 @@ LedStrip::LedStrip(ConfigBase &ledNvValues) : _ledNvValues(ledNvValues)
 
 void
 LedStrip::updateLed() {
-    Log.notice("Updating led RGB(%d,%d,%d)", _redVal, _greenVal, _blueVal);              
+    Log.notice("Updating led brightness %d RGB(%d,%d,%d)", _ledValue, _redVal, _greenVal, _blueVal);              
     for(int i=0; i < _numLeds; i++) {
         leds[i].setRGB(_redVal, _greenVal, _blueVal);
      }
      _ledChanged = false;
-    FastLED.show(); 
+    FastLED.show(_ledValue); 
 }
 void
 LedStrip::wake() {
@@ -312,7 +312,7 @@ void LedStrip::service(bool robotIdle)
                     {
                         leds[i] = CRGB::Black;
                     }
-                    FastLED.show(); 
+                    FastLED.show(_ledValue); 
          
                     Log.notice("Setting leds to idle\n");
                 }
@@ -325,7 +325,7 @@ void LedStrip::service(bool robotIdle)
                     (this->*gPatterns[gCurrentPatternNumber])();
 
                     // send the 'leds' array out to the actual LED strip
-                    FastLED.show();  
+                    FastLED.show(_ledValue);  
                     // insert a delay to keep the framerate modest
                     //FastLED.delay(1000/FRAMES_PER_SECOND); 
 

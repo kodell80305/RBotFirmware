@@ -82,13 +82,16 @@ SerialDisplay::handleSplash(char *DisplayData) {
 
     _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
 
+    sprintf(sendStr, "p[0].ledBlue.val=%d", blueVal);
+    writeSerialDisplay(sendStr);
+
     sprintf(sendStr, "p[0].ledRed.val=%d", redVal);
     writeSerialDisplay(sendStr);
 
     sprintf(sendStr, "p[0].ledGreen.val=%d", greenVal);
     writeSerialDisplay(sendStr);
     
-    sprintf(sendStr, "p[0].ledBlue.val=%d", blueVal);
+    sprintf(sendStr, "p[0].ledValue.val=%d", brightness);
     writeSerialDisplay(sendStr);
 
 }
@@ -128,6 +131,19 @@ SerialDisplay::handleFileSelect(char *DisplayData) {
         Log.notice("%s\n", sendStr);
         writeSerialDisplay(sendStr);
     }
+
+}
+
+void
+SerialDisplay::handleBrightness(char *DisplayData) {
+    int readVal;
+    _ledStrip.getRGB(brightness, redVal, greenVal, blueVal);
+
+    sscanf(DisplayData, "ledValue %d", &readVal);
+    brightness = readVal;
+
+    Log.trace("Display set brightness to %d RGB( %d %d %d %s)\n", brightness, redVal, greenVal, blueVal, DisplayData);
+    _ledStrip.setRGB(brightness, redVal, greenVal, blueVal);
 
 }
 
@@ -463,7 +479,7 @@ void SerialDisplay::status(String newStatus, FileManager& _fileManager)
             snprintf(sendStr, sizeof(sendStr), "t5.txt=\"CPU Temp %7.2f\"", 9.0*temperatureRead()/5.0 + 32.0);
             writeSerialDisplay(sendStr);
 
-            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.23 /04/19/2024\"");
+            snprintf(sendStr, sizeof(sendStr), "t6.txt=\"Robot ver 0.24 01/19/2025\"");
             writeSerialDisplay(sendStr);
 
             snprintf(sendStr, sizeof(sendStr), "t7.txt=\"workMgr: B:%d A:%d, que %d \"", 
@@ -619,6 +635,10 @@ handleExec(char *DisplayData) {
     SerialDisplay::getInstance()->handleExec(DisplayData);
 }
 void 
+handleBrightness(char *DisplayData) {
+    SerialDisplay::getInstance()->handleBrightness(DisplayData);
+}
+void 
 handleRed(char *DisplayData) {
     SerialDisplay::getInstance()->handleRed(DisplayData);
 }
@@ -668,6 +688,7 @@ Commands commands[] = {
     { "ledRed", handleRed},
     { "ledBlue", handleBlue},
     { "ledGreen", handleGreen},
+    { "ledValue", handleBrightness},
     { "MainMenu", handleMainMenu},
     { "RbotPos", handleRbotPos},
     { "ManualControl", handleManualCtl},

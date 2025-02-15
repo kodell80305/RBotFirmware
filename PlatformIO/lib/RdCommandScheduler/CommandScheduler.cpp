@@ -51,9 +51,9 @@ void CommandScheduler::service()
             tzset();
 
             getLocalTime(&timeinfo, 0);
-            Serial.println(&timeinfo, " %B %d %Y %H:%M:%S (%A)");
+           // Serial.println(&timeinfo, " %B %d %Y %H:%M:%S (%A)");
 
-            Log.verbose("%sservice failed to get time year %d %d\n", MODULE_PREFIX, timeinfo.tm_year, timeinfo.tm_hour);
+            //Log.verbose("%sservice failed to get time year %d %d\n", MODULE_PREFIX, timeinfo.tm_year, timeinfo.tm_hour);
             return;
         }
 

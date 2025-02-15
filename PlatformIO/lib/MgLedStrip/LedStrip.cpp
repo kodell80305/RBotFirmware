@@ -291,7 +291,7 @@ void LedStrip::service(bool robotIdle)
         idleTime = lastTime = millis();
         idleTime -= IDLE_TIMEOUT;
     }
-#if 1
+#if 0
     static int debugCnt=0;
     if(debugCnt++ > 10000) {
         debugCnt = 0;

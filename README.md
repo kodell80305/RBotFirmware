@@ -18,8 +18,12 @@ This board has only a single 8 bit shift register that sets a common enable bit 
 
 -Modify the LED support to handle a WS2812B LED strip.   We can control the LED from the TTL output (IO32) found on J18 (for a 12 volt LED strip).   
 
--Add screen support using TFT_eSPI/lvgl for the TS35-R screen 
+-Add support for a Nextion "smart" screen
 
 -Change original software as little as possible & maintain backward compatibility
+
+Update: I've pretty much abandoned this project.   
+
+I've decided to use the Dune Weaver dlc32 front end (https://github.com/tuanchris/dune-weaver/tree/dlc32) running on a raspberry pi 2w (written in python) and the fluidnc SCARA port running on the dlc32: https://github.com/bdring/FluidNC/tree/Scara.   Contact me if you're interested in this project.
 
 
